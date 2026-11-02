@@ -8,7 +8,7 @@ from app.ofertas.schemas import OfertaCreate, OfertaResponse
 from app.ofertas.services import OfertaService
 from app.social.models import User
 
-router = APIRouter(redirect_slashes=False)
+router = APIRouter()
 
 def get_current_user(authorization: str | None = Header(None), db: Session = Depends(get_db)) -> User:
     if not authorization or not authorization.startswith("Bearer "):
@@ -23,7 +23,7 @@ def get_current_user(authorization: str | None = Header(None), db: Session = Dep
         raise HTTPException(status_code=401, detail="Usuario no encontrado")
     return user
 
-@router.post("/", response_model=OfertaResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=OfertaResponse, status_code=status.HTTP_201_CREATED)
 def publicar_oferta(
     titulo: str = Form(...),
     precio: float = Form(...),
@@ -43,10 +43,6 @@ def publicar_oferta(
     return OfertaService.publicar_oferta(db, data, foto, current_user.id)
 
 @router.get("", response_model=list[OfertaResponse])
-def listar_ofertas_sin_slash(db: Session = Depends(get_db), page: int = Query(1, ge=1), size: int = Query(10, ge=1, le=100)):
-    return OfertaService.obtener_feed(db, page, size)
-
-@router.get("/", response_model=list[OfertaResponse])
 def listar_ofertas(db: Session = Depends(get_db), page: int = Query(1, ge=1), size: int = Query(10, ge=1, le=100)):
     return OfertaService.obtener_feed(db, page, size)
 
