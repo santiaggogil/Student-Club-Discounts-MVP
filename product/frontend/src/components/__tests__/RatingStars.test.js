@@ -1,0 +1,13 @@
+import { jsx as _jsx } from "react/jsx-runtime";
+import { render, screen, fireEvent } from '@testing-library/react';
+import { RatingStars } from '../RatingStars';
+import { describe, it, expect, vi } from 'vitest';
+describe('RatingStars Component', () => {
+    it('permite calificar si no es el dueño', () => {
+        const onRate = vi.fn();
+        render(_jsx(RatingStars, { ofertaId: 1, initialRating: 0, isOwner: false, onRate: onRate }));
+        const stars = screen.getAllByText('★');
+        fireEvent.click(stars[2]);
+        expect(stars[2]).toBeInTheDocument();
+    });
+});
