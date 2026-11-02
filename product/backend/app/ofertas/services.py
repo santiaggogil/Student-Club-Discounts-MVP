@@ -56,8 +56,10 @@ class OfertaService:
         return resp
 
     @staticmethod
-    def obtener_feed(db: Session, page: int, size: int) -> list[OfertaResponse]:
-        ofertas = OfertaRepository.listar_vigentes(db, page, size)
+    def obtener_feed(db: Session, page: int, size: int, orden: str = "relevancia") -> list[OfertaResponse]:
+        if orden not in ["relevancia", "recientes"]:
+            raise HTTPException(status_code=422, detail="Parámetro de orden inválido. Use 'relevancia' o 'recientes'.")
+        ofertas = OfertaRepository.listar_vigentes(db, page, size, orden)
         res = []
         for o in ofertas:
             promedio = OfertaRepository.calcular_promedio(db, o.id)

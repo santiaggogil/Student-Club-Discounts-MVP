@@ -47,8 +47,13 @@ def publicar_oferta(
     return OfertaService.publicar_oferta(db, data, foto, current_user.id)
 
 @router.get("", response_model=list[OfertaResponse])
-def listar_ofertas(db: Session = Depends(get_db), page: int = Query(1, ge=1), size: int = Query(10, ge=1, le=100)):
-    return OfertaService.obtener_feed(db, page, size)
+def listar_ofertas(
+    db: Session = Depends(get_db),
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1, le=100),
+    orden: str = Query("relevancia", regex="^(relevancia|recientes)$")
+):
+    return OfertaService.obtener_feed(db, page, size, orden)
 
 @router.get("/mapa")
 def obtener_mapa():

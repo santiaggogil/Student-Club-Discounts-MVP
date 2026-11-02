@@ -4,7 +4,10 @@
   "sedes": {
     "exito": [],
     "carulla": [],
-    "olimpica": [],
+        "olimpica": [
+      {"nombre": "Olímpica Calle 50", "direccion": "Cl. 50 #23-1, Manizales", "lat": 5.064063, "lon": -75.498188},
+      {"nombre": "Olímpica 3F9H+8R", "direccion": "3F9H+8R, Manizales", "lat": 5.068312, "lon": -75.520437}
+    ],
     "jumbo": [],
     "d1": []
   },

@@ -22,10 +22,36 @@ class OfertaRepository:
         return oferta
 
     @staticmethod
-    def listar_vigentes(db: Session, page: int = 1, size: int = 10) -> list[OfertaComunitaria]:
+    def listar_vigentes(db: Session, page: int = 1, size: int = 10, orden: str = "relevancia") -> list[OfertaComunitaria]:
         now = datetime.now()
+        query = db.query(OfertaComunitaria).options(joinedload(OfertaComunitaria.autor)).filter(OfertaComunitaria.vigencia > now)
+        
+        if orden == "recientes":
+            query = query.order_by(OfertaComunitaria.id.desc())
+        else:
+            # Relevancia: Ordenar por promedio de calificación descendente, total de calificaciones descendente y fecha de vigencia/id desc
+            # En SQLAlchemy, realizamos el cálculo o cargamos y ordenamos en servicio si se prefiere exactitud, o mediante subconsultas/joins.
+            # Como SQLite soporta subconsultas y joins con funciones de agregación, implementaremos ordenamiento eficiente.
+            pass
+            
+        # Para asegurar flexibilidad y robustez en la combinación de relevancia (promedio, total y vigencia),
+        # podemos recuperar las vigentes y aplicar el ordenamiento en memoria o mediante una consulta optimizada.
+        # Dado el paginado, recuperamos todas las vigentes o aplicamos la lógica.
+        ofertas = query.all()
+        
+        # Ordenamiento en memoria para aplicar reglas exactas de relevancia (promedio desc, total desc, id desc)
+        def clave_relevancia(o):
+            prom = OfertaRepository.calcular_promedio(db, o.id)
+            tot = len(o.calificaciones) if o.calificaciones else 0
+            return (prom, tot, o.id)
+
+        if orden == "recientes":
+            ofertas.sort(key=lambda o: o.id, reverse=True)
+        else:
+            ofertas.sort(key=clave_relevancia, reverse=True)
+            
         offset = (page - 1) * size
-        return db.query(OfertaComunitaria).options(joinedload(OfertaComunitaria.autor)).filter(OfertaComunitaria.vigencia > now).offset(offset).limit(size).all()
+        return ofertas[offset:offset + size]
 
     @staticmethod
     def obtener_por_id(db: Session, oferta_id: int) -> OfertaComunitaria:

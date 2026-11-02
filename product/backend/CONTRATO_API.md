@@ -31,7 +31,7 @@
 - **Auth**: Requerida (JWT).
 - **Salida (200)**: `{"message": "Sesión cerrada"}`
 
-## Ofertas Comunitarias (HU-05, HU-09)
+## Ofertas Comunitarias (HU-05, HU-09, HU-12)
 
 ### POST /api/v1/ofertas
 - **Descripción**: Publica una nueva oferta comunitaria.
@@ -41,12 +41,13 @@
 - **Salida (201)**: `{"id": 1, ..., "autor_username": "cazador"}`
 
 ### GET /api/v1/ofertas
-- **Descripción**: Obtiene el feed de ofertas comunitarias vigentes (paginado) incluyendo la URL codificada de imagen bajo /api/v1/uploads/, el nombre del autor, promedio de calificación y total de calificaciones.
+- **Descripción**: Obtiene el feed de ofertas comunitarias vigentes (paginado) incluyendo la URL codificada de imagen bajo /api/v1/uploads/, el nombre del autor, promedio de calificación y total de calificaciones. Soporta parámetro de ordenamiento (HU-12).
 - **Auth**: Ninguna.
 - **Entrada (Query Params)**:
   - `page` (int, opcional, default 1)
   - `size` (int, opcional, default 10)
-- **Salida (200)**: Lista de ofertas comunitarias.
+  - `orden` (string, opcional, valores: `relevancia` | `recientes`, default `relevancia`)
+- **Salida (200)**: Lista de ofertas comunitarias ordenadas.
 
 ## Calificación de Ofertas (HU-11)
 
