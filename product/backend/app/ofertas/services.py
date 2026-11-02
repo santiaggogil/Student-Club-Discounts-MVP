@@ -2,7 +2,7 @@ import os
 import uuid
 from fastapi import UploadFile, HTTPException, status
 from sqlalchemy.orm import Session
-from app.ofertas.schemas import OfertaCreate
+from app.ofertas.schemas import OfertaCreate, OfertaResponse
 from app.ofertas.repository import OfertaRepository
 from app.ofertas.models import OfertaComunitaria
 from bot_ofertas import RepositorioOfertas, cargar_sedes
@@ -34,30 +34,17 @@ class OfertaService:
             )
 
     @staticmethod
-    def publicar_oferta(db: Session, data: OfertaCreate, file: UploadFile, autor_id: int) -> OfertaComunitaria:
+    def publicar_oferta(db: Session, data: OfertaCreate, file: UploadFile, autor_id: int) -> OfertaResponse:
         imagen_url = OfertaService.procesar_y_guardar_imagen(file)
         oferta = OfertaRepository.crear(db, data, imagen_url, autor_id)
-        oferta.autor_username = oferta.autor.username if oferta.autor else None
-        return oferta
+        # Recargar para asegurar autor
+        oferta = OfertaRepository.obtener_por_id(db, oferta.id)
+        return OfertaResponse.model_validate(oferta, context={"obj": oferta})
 
     @staticmethod
-    def obtener_feed(db: Session, page: int, size: int) -> list[dict]:
+    def obtener_feed(db: Session, page: int, size: int) -> list[OfertaResponse]:
         ofertas = OfertaRepository.listar_vigentes(db, page, size)
-        resultado = []
-        for o in ofertas:
-            d = {
-                "id": o.id,
-                "titulo": o.titulo,
-                "precio": o.precio,
-                "ubicacion": o.ubicacion,
-                "vigencia": o.vigencia,
-                "descripcion": o.descripcion,
-                "imagen": o.imagen,
-                "autor_id": o.autor_id,
-                "autor_username": o.autor.username if o.autor else None
-            }
-            resultado.append(d)
-        return resultado
+        return [OfertaResponse.model_validate(o, context={"obj": o}) for o in ofertas]
 
     @staticmethod
     def obtener_datos_mapa():

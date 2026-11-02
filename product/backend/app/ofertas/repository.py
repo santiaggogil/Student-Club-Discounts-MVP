@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 from app.ofertas.models import OfertaComunitaria, Calificacion
 from app.ofertas.schemas import OfertaCreate
@@ -25,11 +25,11 @@ class OfertaRepository:
     def listar_vigentes(db: Session, page: int = 1, size: int = 10) -> list[OfertaComunitaria]:
         now = datetime.now()
         offset = (page - 1) * size
-        return db.query(OfertaComunitaria).filter(OfertaComunitaria.vigencia > now).offset(offset).limit(size).all()
+        return db.query(OfertaComunitaria).options(joinedload(OfertaComunitaria.autor)).filter(OfertaComunitaria.vigencia > now).offset(offset).limit(size).all()
 
     @staticmethod
     def obtener_por_id(db: Session, oferta_id: int) -> OfertaComunitaria:
-        return db.query(OfertaComunitaria).filter(OfertaComunitaria.id == oferta_id).first()
+        return db.query(OfertaComunitaria).options(joinedload(OfertaComunitaria.autor)).filter(OfertaComunitaria.id == oferta_id).first()
 
     @staticmethod
     def guardar_calificacion(db: Session, oferta_id: int, usuario_id: int, puntuacion: int):

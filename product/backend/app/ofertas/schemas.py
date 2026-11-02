@@ -24,8 +24,6 @@ class OfertaResponse(BaseModel):
     def get_username(cls, v, info):
         if v is not None:
             return v
-        values = info.data
-        # Si el modelo SQLAlchemy tiene relación 'autor'
         obj = info.context.get('obj') if info.context else None
         if obj and hasattr(obj, 'autor') and obj.autor:
             return obj.autor.username
