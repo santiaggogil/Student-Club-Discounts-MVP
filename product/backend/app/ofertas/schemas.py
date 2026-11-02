@@ -25,8 +25,11 @@ class OfertaResponse(BaseModel):
         if v is not None:
             return v
         obj = info.context.get('obj') if info.context else None
-        if obj and hasattr(obj, 'autor') and obj.autor:
-            return obj.autor.username
+        if obj:
+            if hasattr(obj, 'autor') and obj.autor:
+                return obj.autor.username
+            if hasattr(obj, 'autor_username') and obj.autor_username:
+                return obj.autor_username
         return v
 
     class Config:
