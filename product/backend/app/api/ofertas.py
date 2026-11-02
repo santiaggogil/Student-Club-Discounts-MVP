@@ -8,7 +8,7 @@ from app.ofertas.schemas import OfertaCreate, OfertaResponse
 from app.ofertas.services import OfertaService
 from app.social.models import User
 
-router = APIRouter()
+router = APIRouter(redirect_slashes=False)
 
 def get_current_user(authorization: str | None = Header(None), db: Session = Depends(get_db)) -> User:
     if not authorization or not authorization.startswith("Bearer "):
@@ -43,6 +43,10 @@ def publicar_oferta(
     return OfertaService.publicar_oferta(db, data, foto, current_user.id)
 
 @router.get("", response_model=list[OfertaResponse])
+def listar_ofertas_sin_slash(db: Session = Depends(get_db), page: int = Query(1, ge=1), size: int = Query(10, ge=1, le=100)):
+    return OfertaService.obtener_feed(db, page, size)
+
+@router.get("/", response_model=list[OfertaResponse])
 def listar_ofertas(db: Session = Depends(get_db), page: int = Query(1, ge=1), size: int = Query(10, ge=1, le=100)):
     return OfertaService.obtener_feed(db, page, size)
 
