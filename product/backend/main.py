@@ -1,3 +1,7 @@
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parent))
+
 from fastapi import FastAPI
 from app.api.health import router as health_router
 from app.api.auth import router as auth_router
