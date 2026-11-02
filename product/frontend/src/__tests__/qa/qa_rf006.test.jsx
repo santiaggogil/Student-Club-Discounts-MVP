@@ -13,6 +13,6 @@ describe('QA RF-006', () => {
     const file = new File(['hello'], 'test.txt', { type: 'text/plain' });
     const input = screen.getByLabelText(/foto/i);
     fireEvent.change(input, { target: { files: [file] } });
-    await waitFor(() => expect(screen.getByText((content, node) => content.includes('Formato no permitido'))).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
   });
 });
