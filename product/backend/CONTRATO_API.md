@@ -13,3 +13,20 @@
 - **Errores**:
   - 422: Error de validación de campos.
   - 400: Usuario o correo ya registrado.
+
+## Autenticación (HU-02)
+
+### POST /api/v1/auth/login
+- **Descripción**: Inicia sesión y devuelve un token JWT.
+- **Auth**: Ninguna.
+- **Entrada (JSON)**:
+  - `identifier` (string, obligatorio: email o username)
+  - `password` (string, obligatorio)
+- **Salida (200)**: `{"access_token": "...", "token_type": "bearer"}`
+- **Errores**:
+  - 401: Credenciales incorrectas.
+
+### POST /api/v1/auth/logout
+- **Descripción**: Cierra la sesión actual.
+- **Auth**: Requerida (JWT).
+- **Salida (200)**: `{"message": "Sesión cerrada"}`

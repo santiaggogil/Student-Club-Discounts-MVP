@@ -1,12 +1,30 @@
-from app.services.auth import verify_password, get_password_hash, create_access_token
+from fastapi.testclient import TestClient
+from main import app
+from app.services.auth import get_password_hash
+from app.social.models import User
+from app.db.session import SessionLocal
 
-def test_password_hashing():
-    password = "Password123"
-    hashed = get_password_hash(password)
-    assert verify_password(password, hashed)
-    assert not verify_password("wrong", hashed)
+client = TestClient(app)
 
-def test_jwt_creation():
-    token = create_access_token({"sub": "user1"})
-    assert isinstance(token, str)
-    assert len(token) > 0
+def test_login_flow():
+    db = SessionLocal()
+    user = User(username="testuser", hashed_password=get_password_hash("Password123"))
+    db.add(user)
+    db.commit()
+    
+    # Login exitoso
+    resp = client.post("/api/v1/auth/login", json={"identifier": "testuser", "password": "Password123"})
+    assert resp.status_code == 200
+    assert "access_token" in resp.json()
+    
+    # Login fallido
+    resp = client.post("/api/v1/auth/login", json={"identifier": "testuser", "password": "WrongPass"})
+    assert resp.status_code == 401
+    
+    db.delete(user)
+    db.commit()
+    db.close()
+
+def test_logout():
+    resp = client.post("/api/v1/auth/logout", headers={"Authorization": "Bearer fake"})
+    assert resp.status_code == 200
