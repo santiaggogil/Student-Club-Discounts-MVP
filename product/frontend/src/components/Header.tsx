@@ -1,7 +1,36 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 
 export const Header: React.FC = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const timestamp = localStorage.getItem('token_timestamp');
+    if (token) {
+      if (timestamp) {
+        const elapsed = Date.now() - parseInt(timestamp, 10);
+        if (elapsed > 30 * 60 * 1000) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('token_timestamp');
+          setIsAuthenticated(false);
+          return;
+        }
+      }
+      setIsAuthenticated(true);
+    } else {
+      setIsAuthenticated(false);
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('token_timestamp');
+    setIsAuthenticated(false);
+    navigate('/login');
+  };
+
   return (
     <header className="main-header">
       <div className="header-container">
@@ -29,9 +58,25 @@ export const Header: React.FC = () => {
           <input type="text" placeholder="Buscar ofertas..." className="search-input" />
         </div>
 
-        <button className="btn-primary" aria-label="Publicar oferta">
-          + Publicar Oferta
-        </button>
+        {isAuthenticated ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <NavLink to="/" className="btn-primary" style={{ textDecoration: 'none' }}>
+              + Publicar Oferta
+            </NavLink>
+            <button onClick={handleLogout} className="btn-secondary-outline" style={{ padding: '0.4rem 1rem', cursor: 'pointer' }}>
+              Cerrar Sesión
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <NavLink to="/login" className="btn-secondary-outline" style={{ textDecoration: 'none', padding: '0.4rem 1rem' }}>
+              Iniciar Sesión
+            </NavLink>
+            <NavLink to="/register" className="btn-primary" style={{ textDecoration: 'none' }}>
+              Registrarse
+            </NavLink>
+          </div>
+        )}
       </div>
     </header>
   );
