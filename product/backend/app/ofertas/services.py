@@ -39,6 +39,7 @@ class OfertaService:
     def publicar_oferta(db: Session, data: OfertaCreate, file: UploadFile, autor_id: int) -> OfertaResponse:
         imagen_url = OfertaService.procesar_y_guardar_imagen(file)
         oferta = OfertaRepository.crear(db, data, imagen_url, autor_id)
+        oferta = OfertaRepository.obtener_por_id(db, oferta.id)
         return OfertaResponse.model_validate(oferta)
 
     @staticmethod
@@ -49,7 +50,11 @@ class OfertaService:
             promedio = OfertaRepository.calcular_promedio(db, o.id)
             total = len(o.calificaciones)
             o_dict = OfertaResponse.model_validate(o).model_dump()
-            o_dict.update({"autor_username": o.autor.username, "promedio_calificacion": promedio, "total_calificaciones": total})
+            o_dict.update({
+                "autor_username": o.autor.username if o.autor else "Desconocido",
+                "promedio_calificacion": promedio,
+                "total_calificaciones": total
+            })
             res.append(OfertaResponse(**o_dict))
         return res
 
