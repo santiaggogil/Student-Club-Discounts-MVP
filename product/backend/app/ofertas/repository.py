@@ -21,6 +21,7 @@ class OfertaRepository:
         return oferta
 
     @staticmethod
-    def listar_vigentes(db: Session) -> list[OfertaComunitaria]:
+    def listar_vigentes(db: Session, page: int = 1, size: int = 10) -> list[OfertaComunitaria]:
         now = datetime.now()
-        return db.query(OfertaComunitaria).filter(OfertaComunitaria.vigencia > now).all()
+        offset = (page - 1) * size
+        return db.query(OfertaComunitaria).filter(OfertaComunitaria.vigencia > now).offset(offset).limit(size).all()

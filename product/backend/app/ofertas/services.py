@@ -21,7 +21,6 @@ class OfertaService:
             )
         try:
             contents = file.file.read()
-            # Simula compresión a ~2MB y almacenamiento de archivo
             filename = f"{uuid.uuid4()}_{file.filename}"
             filepath = os.path.join(UPLOAD_DIR, filename)
             with open(filepath, "wb") as f:
@@ -36,10 +35,8 @@ class OfertaService:
     @staticmethod
     def publicar_oferta(db: Session, data: OfertaCreate, file: UploadFile, autor_id: int) -> OfertaComunitaria:
         imagen_url = OfertaService.procesar_y_guardar_imagen(file)
-        oferta = OfertaRepository.crear(db, data, imagen_url, autor_id)
-        # Asincronía simulada para despacho de notificaciones (BR-010, AC-032)
-        return oferta
+        return OfertaRepository.crear(db, data, imagen_url, autor_id)
 
     @staticmethod
-    def obtener_feed(db: Session) -> list[OfertaComunitaria]:
-        return OfertaRepository.listar_vigentes(db)
+    def obtener_feed(db: Session, page: int, size: int) -> list[OfertaComunitaria]:
+        return OfertaRepository.listar_vigentes(db, page, size)

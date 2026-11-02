@@ -1,9 +1,8 @@
-from fastapi import APIRouter, Depends, UploadFile, File, Form, status, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, Form, status, HTTPException, Query
 from sqlalchemy.orm import Session
 from datetime import datetime
 from app.db.session import get_db
-from app.services.auth import decode_token, get_password_hash
-from fastapi.security import OAuth2PasswordBearer
+from app.services.auth import decode_token
 from fastapi import Header
 from app.ofertas.schemas import OfertaCreate, OfertaResponse
 from app.ofertas.services import OfertaService
@@ -50,5 +49,5 @@ def publicar_oferta(
     return OfertaService.publicar_oferta(db, data, foto, current_user.id)
 
 @router.get("/", response_model=list[OfertaResponse])
-def listar_ofertas(db: Session = Depends(get_db)):
-    return OfertaService.obtener_feed(db)
+def listar_ofertas(db: Session = Depends(get_db), page: int = Query(1, ge=1), size: int = Query(10, ge=1, le=100)):
+    return OfertaService.obtener_feed(db, page, size)
