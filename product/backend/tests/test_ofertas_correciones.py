@@ -9,7 +9,7 @@ client = TestClient(app)
 
 def test_calificar_oferta_con_esquema_y_validaciones():
     db = SessionLocal()
-    db.query(User).filter(User.username.in_(["autor_ oferta", "calificador"])).delete()
+    db.query(User).filter(User.username.in_(["autor_oferta", "calificador"])).delete()
     db.commit()
     
     autor = User(username="autor_oferta", email="autor@test.com", hashed_password=get_password_hash("Password123"))
@@ -24,7 +24,7 @@ def test_calificar_oferta_con_esquema_y_validaciones():
     token_autor = resp_login.json()["access_token"]
     
     # Login calificador
-    resp_login2 = client.post(" /api/v1/auth/login", json={"identifier": "calificador", "password": "Password123"})
+    resp_login2 = client.post("/api/v1/auth/login", json={"identifier": "calificador", "password": "Password123"})
     token_calif = resp_login2.json()["access_token"]
     
     # Publicar oferta
