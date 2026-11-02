@@ -1,15 +1,16 @@
 import sys
 from pathlib import Path
-sys.path.append(str(Path(__file__).resolve().parent))
-sys.path.append(str(Path(__file__).resolve().parent / "bot"))
+
+# Asegurar que el directorio raíz y el bot estén en el path
+root = Path(__file__).resolve().parent
+sys.path.append(str(root))
+sys.path.append(str(root / "bot"))
 
 from fastapi import FastAPI
 from app.api.health import router as health_router
 from app.api.auth import router as auth_router
 from app.api.ofertas import router as ofertas_router
 from app.db.session import engine, Base
-from app.social.models import User
-from app.ofertas.models import OfertaComunitaria
 
 Base.metadata.create_all(bind=engine)
 

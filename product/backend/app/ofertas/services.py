@@ -18,7 +18,7 @@ class OfertaService:
         if file.content_type not in FORMATOS_VALIDOS:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=f"Formato de imagen no permitido: {file.content_type}. Use JPEG, PNG, WEBP o HEIC."
+                detail=f"Formato de imagen no permitido: {file.content_type}."
             )
         try:
             contents = file.file.read()

@@ -8,21 +8,19 @@ from app.ofertas.schemas import OfertaCreate, OfertaResponse
 from app.ofertas.services import OfertaService
 from app.social.models import User
 
-router = APIRouter(redirect_slashes=False)
+router = APIRouter()
 
 def get_current_user(authorization: str | None = Header(None), db: Session = Depends(get_db)) -> User:
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Debes iniciar sesión para calificar")
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Debes iniciar sesión para calificar")
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Debes iniciar sesión")
     token = authorization.split(" ")[1]
     payload = decode_token(token)
     if not payload:
-        raise HTTPException(status_code=401, detail="Debes iniciar sesión para calificar")
+        raise HTTPException(status_code=401, detail="Sesión inválida")
     user_id = int(payload.get("sub"))
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=401, detail="Debes iniciar sesión para calificar")
+        raise HTTPException(status_code=401, detail="Usuario no encontrado")
     return user
 
 @router.post("/", response_model=OfertaResponse, status_code=status.HTTP_201_CREATED)
@@ -39,22 +37,12 @@ def publicar_oferta(
     try:
         vigencia_dt = datetime.fromisoformat(vigencia)
     except ValueError:
-        raise HTTPException(status_code=422, detail="Formato de fecha de vigencia inválido (ISO requerido)")
+        raise HTTPException(status_code=422, detail="Formato de fecha de vigencia inválido")
     
-    data = OfertaCreate(
-        titulo=titulo,
-        precio=precio,
-        ubicacion=ubicacion,
-        vigencia=vigencia_dt,
-        descripcion=descripcion
-    )
+    data = OfertaCreate(titulo=titulo, precio=precio, ubicacion=ubicacion, vigencia=vigencia_dt, descripcion=descripcion)
     return OfertaService.publicar_oferta(db, data, foto, current_user.id)
 
 @router.get("", response_model=list[OfertaResponse])
-def listar_ofertas_sin_slash(db: Session = Depends(get_db), page: int = Query(1, ge=1), size: int = Query(10, ge=1, le=100)):
-    return OfertaService.obtener_feed(db, page, size)
-
-@router.get("/", response_model=list[OfertaResponse])
 def listar_ofertas(db: Session = Depends(get_db), page: int = Query(1, ge=1), size: int = Query(10, ge=1, le=100)):
     return OfertaService.obtener_feed(db, page, size)
 
