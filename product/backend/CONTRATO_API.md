@@ -30,3 +30,25 @@
 - **Descripción**: Cierra la sesión actual.
 - **Auth**: Requerida (JWT).
 - **Salida (200)**: `{"message": "Sesión cerrada"}`
+
+## Ofertas Comunitarias (HU-05)
+
+### POST /api/v1/ofertas
+- **Descripción**: Publica una nueva oferta comunitaria mediante flujo asistido de 3 pasos (1. Foto/imagen, 2. Precio, ubicación y vigencia, 3. Descripción).
+- **Auth**: Requerida (JWT).
+- **Entrada (Multipart Form Data)**:
+  - `foto` (File, obligatorio, formatos aceptados: JPEG, PNG, WEBP, HEIC)
+  - `precio` (float, obligatorio, > 0)
+  - `ubicacion` (string, obligatorio)
+  - `vigencia` (string/datetime, obligatorio)
+  - `titulo` (string, obligatorio)
+  - `descripcion` (string, obligatorio)
+- **Salida (201)**: `{"id": 1, "titulo": "...", "precio": 1000.0, "ubicacion": "...", "vigencia": "...", "descripcion": "...", "imagen": "...", "autor_id": 1}`
+- **Errores**:
+  - 401: No autenticado.
+  - 422: Error de validación de campos obligatorios o formato de imagen no permitido.
+
+### GET /api/v1/ofertas
+- **Descripción**: Obtiene el feed de ofertas comunitarias vigentes.
+- **Auth**: Ninguna.
+- **Salida (200)**: Lista de ofertas comunitarias.
