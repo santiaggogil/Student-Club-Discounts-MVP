@@ -1,6 +1,5 @@
 import pytest
 from fastapi import status
-from datetime import datetime, timedelta
 from app.services.auth import create_access_token, get_password_hash
 from app.social.models import User
 
@@ -21,7 +20,7 @@ def test_tc_010_sesion_valida(client, db):
     db.add(user)
     db.commit()
     token = create_access_token({'sub': str(user.id)})
-    resp = client.get('/api/v1/ofertas/', headers={'Authorization': f'Bearer {token}'})
+    resp = client.get('/api/v1/ofertas', headers={'Authorization': f'Bearer {token}'})
     assert resp.status_code == 200
 
 def test_tc_011_sesion_expirada(client, db):
@@ -29,7 +28,7 @@ def test_tc_011_sesion_expirada(client, db):
     db.add(user)
     db.commit()
     token = create_access_token({'sub': str(user.id)}, expires_delta=timedelta(minutes=-1))
-    resp = client.get('/api/v1/ofertas/', headers={'Authorization': f'Bearer {token}'})
+    resp = client.get('/api/v1/ofertas', headers={'Authorization': f'Bearer {token}'})
     assert resp.status_code == 401
 
 def test_tc_012_logout(client, db):
@@ -39,3 +38,7 @@ def test_tc_012_logout(client, db):
     token = create_access_token({'sub': str(user.id)})
     resp = client.post('/api/v1/auth/logout', headers={'Authorization': f'Bearer {token}'})
     assert resp.status_code == 200
+
+def test_tc_013_redireccion_sin_sesion(client):
+    resp = client.get('/api/v1/ofertas', follow_redirects=False)
+    assert resp.status_code == 401

@@ -13,14 +13,12 @@ describe('QA RF-009 Feed de Ofertas (Componentes)', () => {
         json: () => Promise.resolve([
           {
             id: 1,
-            titulo: 'Oferta Comitaria',
+            titulo: 'Oferta Comunitaria',
             descripcion: 'Delicioso almuerzo',
             ubicacion: 'Cafetería',
             precio: 8000,
-            foto: 'test.jpg',
-            autor: 'Usuario',
-            calificacion: 4.5,
-            es_propia: false
+            imagen: 'test.jpg',
+            autor_id: 1
           }
         ])
       })
@@ -29,7 +27,7 @@ describe('QA RF-009 Feed de Ofertas (Componentes)', () => {
 
   it('TC-028 muestra las tarjetas de oferta detalladas en el feed', async () => {
     render(<BrowserRouter><FeedPage /></BrowserRouter>);
-    expect(await screen.findByText('Oferta Comitaria')).toBeInTheDocument();
+    expect(await screen.findByText('Oferta Comunitaria')).toBeInTheDocument();
   });
 
   it('TC-029 carga ofertas por tandas progresivamente al interactuar', async () => {
@@ -49,6 +47,6 @@ describe('QA RF-009 Feed de Ofertas (Componentes)', () => {
 
   it('TC-031 carga el feed completamente de forma rápida', async () => {
     render(<BrowserRouter><FeedPage /></BrowserRouter>);
-    expect(await screen.findByText('Oferta Comitaria')).toBeInTheDocument();
+    expect(await screen.findByText('Oferta Comunitaria')).toBeInTheDocument();
   });
 });
