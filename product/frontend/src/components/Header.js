@@ -1,0 +1,5 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { NavLink } from 'react-router-dom';
+export const Header = () => {
+    return (_jsx("header", { className: "main-header", children: _jsxs("div", { className: "header-container", children: [_jsxs(NavLink, { to: "/", className: "brand", children: [_jsx("span", { className: "brand-badge", children: "SCD" }), _jsx("span", { children: "Student Club Discounts" })] }), _jsx("nav", { children: _jsxs("ul", { className: "nav-links", children: [_jsx("li", { children: _jsx(NavLink, { to: "/", className: ({ isActive }) => (isActive ? 'nav-link active' : 'nav-link'), children: "Comunidad" }) }), _jsx("li", { children: _jsx(NavLink, { to: "/mapa", className: ({ isActive }) => (isActive ? 'nav-link active' : 'nav-link'), children: "Mapa" }) })] }) }), _jsx("div", { className: "search-bar", children: _jsx("input", { type: "text", placeholder: "Buscar ofertas...", className: "search-input" }) }), _jsx("button", { className: "btn-primary", "aria-label": "Publicar oferta", children: "+ Publicar Oferta" })] }) }));
+};
