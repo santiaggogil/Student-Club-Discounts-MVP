@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 from app.db.session import get_db
 from app.services.auth import decode_token
-from fastapi import Header, Request
+from fastapi import Header
 from app.ofertas.schemas import OfertaCreate, OfertaResponse
 from app.ofertas.services import OfertaService
 from app.social.models import User
