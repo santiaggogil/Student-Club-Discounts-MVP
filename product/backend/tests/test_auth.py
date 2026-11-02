@@ -8,6 +8,10 @@ client = TestClient(app)
 
 def test_login_flow():
     db = SessionLocal()
+    # Limpiar usuario previo si existe
+    db.query(User).filter(User.username == "testuser").delete()
+    db.commit()
+    
     user = User(username="testuser", hashed_password=get_password_hash("Password123"))
     db.add(user)
     db.commit()
