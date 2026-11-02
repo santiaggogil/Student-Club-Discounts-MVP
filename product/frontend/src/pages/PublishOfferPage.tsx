@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import api from '../services/api';
 import { FormInput } from '../components/FormInput';
-import { LoadingState, ErrorState } from '../components/StatusStates';
+import { LoadingState } from '../components/StatusStates';
 
 const offerSchema = z.object({
   titulo: z.string().min(3, 'Título requerido'),
@@ -47,7 +47,12 @@ export const PublishOfferPage: React.FC = () => {
   return (
     <div className="publish-container">
       <h2>Paso {step} de 3</h2>
-      {step === 1 && <input type="file" onChange={handleFile} />}
+      {step === 1 && (
+        <div className="form-group">
+          <label htmlFor="foto">Foto</label>
+          <input id="foto" type="file" onChange={handleFile} />
+        </div>
+      )}
       {step === 2 && (
         <>
           <FormInput label="Precio" name="precio" value={formData.precio} onChange={e => setFormData({...formData, precio: e.target.value})} error={errors.precio} />
