@@ -65,7 +65,7 @@ def test_feed_incluye_username_y_url_uploads():
         "/api/v1/ofertas",
         headers={"Authorization": f"Bearer {token}"},
         data={"titulo": "Feed Test", "precio": 2000.0, "ubicacion": "Mall", "vigencia": vigencia, "descripcion": "Test feed"},
-        files={"foto": ("test file.jpg", b"fake", "image/jpeg")}
+        files={"foto": ("test_file.jpg", b"fake", "image/jpeg")}
     )
     
     feed = client.get("/api/v1/ofertas").json()
