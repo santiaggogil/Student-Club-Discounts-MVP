@@ -33,7 +33,7 @@ def test_ac_047_orden_relevancia(client_orden, db_session):
     
     t1 = client_orden.post("/api/v1/auth/login", json={"identifier": "u1", "password": "Password123"}).json()["access_token"]
     t2 = client_orden.post("/api/v1/auth/login", json={"identifier": "u2", "password": "Password123"}).json()["access_token"]
-    t3 = client_orden.post("//api/v1/auth/login", json={"identifier": "u3", "password": "Password123"}).json()["access_token"]
+    t3 = client_orden.post("/api/v1/auth/login", json={"identifier": "u3", "password": "Password123"}).json()["access_token"]
     
     vigencia = (datetime.now() + timedelta(days=1)).isoformat()
     
