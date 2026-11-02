@@ -11,7 +11,7 @@ describe('QA RF-002 Frontend', () => {
       <MemoryRouter initialEntries={['/publicar']}>
         <Routes>
           <Route path="/publicar" element={<PublishOfferPage />} />
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login" element={<div>Iniciar Sesión</div>} />
         </Routes>
       </MemoryRouter>
     );

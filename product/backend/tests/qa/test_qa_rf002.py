@@ -1,8 +1,7 @@
 import pytest
-from fastapi.testclient import TestClient
 from app.services.auth import get_password_hash, create_access_token
 from app.social.models import User
-from datetime import timedelta, datetime
+from datetime import timedelta
 
 def test_tc_008_login_exitoso(client, db):
     user = User(username='test', hashed_password=get_password_hash('Pass12345678'))
