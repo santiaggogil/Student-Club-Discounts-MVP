@@ -1,0 +1,1 @@
+export const App = () => <div className="app-container">App Base</div>;
