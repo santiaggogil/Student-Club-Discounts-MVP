@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, EmailStr, Field, validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.social.models import User
@@ -13,7 +13,8 @@ class UserRegister(BaseModel):
     username: str = None
     password: str = Field(..., min_length=10)
 
-    @validator('password')
+    @field_validator('password')
+    @classmethod
     def password_complexity(cls, v):
         if not re.search(r'[A-Z]', v) or not re.search(r'[a-z]', v) or not re.search(r'\d', v):
             raise ValueError('La contraseña debe incluir mayúsculas, minúsculas y números')
