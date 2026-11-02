@@ -10,27 +10,25 @@ describe('OfferCard Component - Image Error Handling', () => {
     descripcion: 'Descripción de prueba',
     ubicacion: 'Centro',
     precio: 5000,
-    foto: '/uploads/test.jpg',
+    imagen: '/api/v1/uploads/test.jpeg',
     calificacion: 4.0,
     total_calificaciones: 5,
     es_propia: false,
     autor_username: 'cazador'
   };
 
-  it('renderiza la imagen correctamente con la ruta ajustada', () => {
+  it('renderiza la imagen exactamente con el valor de oferta.imagen sin modificar la ruta', () => {
     render(<OfferCard offer={mockOffer} />);
     const img = screen.getByRole('img', { name: /Oferta Prueba/i });
-    expect(img).toHaveAttribute('src', '/api/v1/uploads/test.jpg');
+    expect(img).toHaveAttribute('src', '/api/v1/uploads/test.jpeg');
   });
 
-  it('maneja el error de imagen mostrando el recuadro CSS sin bucle infinito', () => {
+  it('maneja el error de imagen mostrando el recuadro CSS sin bucle infinito y sin repetir petición', () => {
     render(<OfferCard offer={mockOffer} />);
     const img = screen.getByRole('img', { name: /Oferta Prueba/i });
     
-    // Disparar error de carga
     fireEvent.error(img);
     
-    // Verificar que la imagen desaparece y aparece el recuadro fallback
     expect(screen.queryByRole('img', { name: /Oferta Prueba/i })).not.toBeInTheDocument();
     expect(screen.getByTestId('image-error-fallback')).toBeInTheDocument();
   });

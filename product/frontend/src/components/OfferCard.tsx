@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { RatingStars } from './RatingStars';
 
 interface OfferCardProps {
-  offer: { id: number; titulo: string; descripcion: string; ubicacion: string; precio: number; foto?: string; autor_username?: string; autor?: string; calificacion: number; total_calificaciones: number; es_propia: boolean };
+  offer: { id: number; titulo: string; descripcion: string; ubicacion: string; precio: number; imagen?: string; foto?: string; autor_username?: string; autor?: string; calificacion: number; total_calificaciones: number; es_propia: boolean };
 }
 
 export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
@@ -11,16 +11,7 @@ export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
   const [imgError, setImgError] = useState(false);
   const autorNombre = offer.autor_username || offer.autor || 'Anónimo';
 
-  let imageUrl = '';
-  if (offer.foto) {
-    if (offer.foto.startsWith('/api')) {
-      imageUrl = offer.foto;
-    } else if (offer.foto.startsWith('/uploads/')) {
-      imageUrl = `/api/v1${offer.foto}`;
-    } else {
-      imageUrl = offer.foto;
-    }
-  }
+  const imageUrl = offer.imagen || offer.foto || '';
 
   const handleUpdateRating = (nuevoPromedio: number, nuevoTotal: number) => {
     setPromedio(nuevoPromedio);
