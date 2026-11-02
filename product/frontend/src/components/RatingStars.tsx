@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import api from '../services/api';
 
 interface RatingStarsProps {
   ofertaId: number;
@@ -13,13 +14,13 @@ export const RatingStars: React.FC<RatingStarsProps> = ({ ofertaId, initialRatin
   const handleRate = async (val: number) => {
     if (isOwner) return;
     try {
-      const response = await import('../services/api').then(m => m.default.post(`/ofertas/${ofertaId}/calificar`, { puntuacion: val }));
+      const response = await api.post(`/ofertas/${ofertaId}/calificar`, { puntuacion: val });
       setRating(val);
       onRate(response.data.promedio);
     } catch (err: any) {
       if (err.response?.status === 401) alert('Debes iniciar sesión para calificar');
       else if (err.response?.status === 400) alert('No puedes calificar tu propia oferta');
-      else alert('Debes iniciar sesión para calificar');
+      else alert('Error al calificar');
     }
   };
 

@@ -16,7 +16,7 @@ export const RatingStars = ({ ofertaId, initialRating, isOwner, onRate }) => {
             else if (err.response?.status === 400)
                 alert('No puedes calificar tu propia oferta');
             else
-                alert('Error al calificar');
+                alert('Debes iniciar sesión para calificar');
         }
     };
     return (_jsx("div", { className: "rating-stars", children: [1, 2, 3, 4, 5].map((star) => (_jsx("span", { onClick: () => handleRate(star), style: { cursor: isOwner ? 'default' : 'pointer', color: star <= rating ? '#FFD700' : '#ccc' }, children: "\u2605" }, star))) }));

@@ -1,10 +1,21 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { vi, it, expect } from 'vitest';
+import { vi, it, expect, beforeEach } from 'vitest';
 import { RatingStars } from '../../components/RatingStars';
+import api from '../../services/api';
+
+vi.mock('../../services/api', () => ({
+  default: {
+    post: vi.fn()
+  }
+}));
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 it('TC-032 permite calificar oferta ajena', async () => {
   const onRate = vi.fn();
-  global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ promedio: 5.0 }) });
+  api.post.mockResolvedValue({ data: { promedio: 5.0 } });
   render(<RatingStars ofertaId={1} initialRating={0} isOwner={false} onRate={onRate} />);
   fireEvent.click(screen.getAllByText('★')[4]);
   await waitFor(() => expect(onRate).toHaveBeenCalledWith(5.0));
@@ -12,7 +23,7 @@ it('TC-032 permite calificar oferta ajena', async () => {
 
 it('TC-033 permite modificar calificación previa', async () => {
   const onRate = vi.fn();
-  global.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ promedio: 5.0 }) });
+  api.post.mockResolvedValue({ data: { promedio: 5.0 } });
   render(<RatingStars ofertaId={1} initialRating={1} isOwner={false} onRate={onRate} />);
   fireEvent.click(screen.getAllByText('★')[4]);
   await waitFor(() => expect(onRate).toHaveBeenCalledWith(5.0));
@@ -27,8 +38,7 @@ it('TC-034 no permite calificar oferta propia', async () => {
 
 it('TC-035 solicita iniciar sesión si no está autenticado', async () => {
   const onRate = vi.fn();
-  const mockError = { response: { status: 401 } };
-  vi.mock('../../services/api', () => ({ default: { post: vi.fn().mockRejectedValue(mockError) } }));
+  api.post.mockRejectedValue({ response: { status: 401 } });
   window.alert = vi.fn();
   render(<RatingStars ofertaId={1} initialRating={0} isOwner={false} onRate={onRate} />);
   fireEvent.click(screen.getAllByText('★')[2]);
