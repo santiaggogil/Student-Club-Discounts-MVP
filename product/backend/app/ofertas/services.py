@@ -1,5 +1,6 @@
 import os
 import uuid
+from urllib.parse import quote
 from fastapi import UploadFile, HTTPException, status
 from sqlalchemy.orm import Session
 from app.ofertas.schemas import OfertaCreate, OfertaResponse
@@ -27,7 +28,7 @@ class OfertaService:
             filepath = os.path.join(UPLOAD_DIR, filename)
             with open(filepath, "wb") as f:
                 f.write(contents)
-            return f"/api/v1/uploads/{filename}"
+            return f"/api/v1/uploads/{quote(filename)}"
         except Exception:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -38,13 +39,19 @@ class OfertaService:
     def publicar_oferta(db: Session, data: OfertaCreate, file: UploadFile, autor_id: int) -> OfertaResponse:
         imagen_url = OfertaService.procesar_y_guardar_imagen(file)
         oferta = OfertaRepository.crear(db, data, imagen_url, autor_id)
-        oferta = OfertaRepository.obtener_por_id(db, oferta.id)
-        return OfertaResponse.model_validate(oferta, context={"obj": oferta})
+        return OfertaResponse.model_validate(oferta)
 
     @staticmethod
     def obtener_feed(db: Session, page: int, size: int) -> list[OfertaResponse]:
         ofertas = OfertaRepository.listar_vigentes(db, page, size)
-        return [OfertaResponse.model_validate(o, context={"obj": o}) for o in ofertas]
+        res = []
+        for o in ofertas:
+            promedio = OfertaRepository.calcular_promedio(db, o.id)
+            total = len(o.calificaciones)
+            o_dict = OfertaResponse.model_validate(o).model_dump()
+            o_dict.update({"autor_username": o.autor.username, "promedio_calificacion": promedio, "total_calificaciones": total})
+            res.append(OfertaResponse(**o_dict))
+        return res
 
     @staticmethod
     def obtener_datos_mapa():

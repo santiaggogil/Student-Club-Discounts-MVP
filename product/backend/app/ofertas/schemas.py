@@ -18,19 +18,8 @@ class OfertaResponse(BaseModel):
     imagen: str | None
     autor_id: int
     autor_username: str | None = None
-
-    @field_validator('autor_username', mode='before')
-    @classmethod
-    def get_username(cls, v, info):
-        if v is not None:
-            return v
-        obj = info.context.get('obj') if info.context else None
-        if obj:
-            if hasattr(obj, 'autor') and obj.autor:
-                return obj.autor.username
-            if hasattr(obj, 'autor_username') and obj.autor_username:
-                return obj.autor_username
-        return v
+    promedio_calificacion: float = 0.0
+    total_calificaciones: int = 0
 
     class Config:
         from_attributes = True

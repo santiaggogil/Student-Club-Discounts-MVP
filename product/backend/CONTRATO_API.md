@@ -41,7 +41,7 @@
 - **Salida (201)**: `{"id": 1, ..., "autor_username": "cazador"}`
 
 ### GET /api/v1/ofertas
-- **Descripción**: Obtiene el feed de ofertas comunitarias vigentes (paginado) incluyendo la URL relativa de imagen bajo /api/v1/uploads/ y el nombre del autor (autor_username).
+- **Descripción**: Obtiene el feed de ofertas comunitarias vigentes (paginado) incluyendo la URL codificada de imagen bajo /api/v1/uploads/, el nombre del autor, promedio de calificación y total de calificaciones.
 - **Auth**: Ninguna.
 - **Entrada (Query Params)**:
   - `page` (int, opcional, default 1)
