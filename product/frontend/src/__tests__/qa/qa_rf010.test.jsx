@@ -3,15 +3,9 @@ import { vi, it, expect, beforeEach } from 'vitest';
 import { RatingStars } from '../../components/RatingStars';
 import api from '../../services/api';
 
-vi.mock('../../services/api', () => ({
-  default: {
-    post: vi.fn()
-  }
-}));
+vi.mock('../../services/api', () => ({ default: { post: vi.fn() } }));
 
-beforeEach(() => {
-  vi.clearAllMocks();
-});
+beforeEach(() => { vi.clearAllMocks(); });
 
 it('TC-032 permite calificar oferta ajena', async () => {
   const onRate = vi.fn();

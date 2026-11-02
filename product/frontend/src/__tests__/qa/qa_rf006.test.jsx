@@ -9,11 +9,7 @@ vi.mock('../../services/api', () => ({ default: { post: vi.fn() } }));
 describe('QA RF-006', () => {
   it('TC-021 muestra error al subir formato inválido', async () => {
     api.post.mockRejectedValueOnce({ response: { status: 422, data: { detail: 'Formato no permitido' } } });
-    render(
-      <MemoryRouter>
-        <PublishOfferPage />
-      </MemoryRouter>
-    );
+    render(<MemoryRouter><PublishOfferPage /></MemoryRouter>);
     const file = new File(['hello'], 'test.txt', { type: 'text/plain' });
     const input = screen.getByLabelText(/foto/i);
     fireEvent.change(input, { target: { files: [file] } });
