@@ -2,6 +2,7 @@ import pytest
 from fastapi import status
 from app.services.auth import create_access_token, get_password_hash
 from app.social.models import User
+from datetime import timedelta
 
 def test_tc_008_login_exitoso(client, db):
     user = User(username='test', hashed_password=get_password_hash('Pass12345678'))
@@ -40,5 +41,5 @@ def test_tc_012_logout(client, db):
     assert resp.status_code == 200
 
 def test_tc_013_redireccion_sin_sesion(client):
-    resp = client.get('/api/v1/ofertas', follow_redirects=False)
+    resp = client.post('/api/v1/ofertas/', follow_redirects=False)
     assert resp.status_code == 401
