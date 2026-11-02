@@ -2,41 +2,18 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 export const Header = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
     const navigate = useNavigate();
-    const checkAuth = () => {
-        const token = localStorage.getItem('token');
-        const timestamp = localStorage.getItem('token_timestamp');
-        if (token) {
-            if (timestamp) {
-                const elapsed = Date.now() - parseInt(timestamp, 10);
-                if (elapsed > 30 * 60 * 1000) {
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('token_timestamp');
-                    setIsAuthenticated(false);
-                    return;
-                }
-            }
-            setIsAuthenticated(true);
-        }
-        else {
-            setIsAuthenticated(false);
-        }
-    };
     useEffect(() => {
-        checkAuth();
-        const handleStorage = () => checkAuth();
-        window.addEventListener('storage', handleStorage);
-        window.addEventListener('auth-change', handleStorage);
-        return () => {
-            window.removeEventListener('storage', handleStorage);
-            window.removeEventListener('auth-change', handleStorage);
+        const handleAuthChange = () => {
+            setIsAuthenticated(!!localStorage.getItem('token'));
         };
+        window.addEventListener('auth-change', handleAuthChange);
+        return () => window.removeEventListener('auth-change', handleAuthChange);
     }, []);
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('token_timestamp');
-        setIsAuthenticated(false);
         window.dispatchEvent(new Event('auth-change'));
         navigate('/login');
     };
