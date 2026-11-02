@@ -21,7 +21,7 @@ def test_publicar_y_listar_oferta_exitoso():
     vigencia = (datetime.now() + timedelta(days=1)).isoformat()
     
     response = client.post(
-        "/api/v1/ofertas/",
+        "/api/v1/ofertas",
         headers={"Authorization": f"Bearer {token}"},
         data={
             "titulo": "Almuerzo Económico",
@@ -54,7 +54,7 @@ def test_publicar_oferta_formato_imagen_invalido():
     vigencia = (datetime.now() + timedelta(days=1)).isoformat()
     
     response = client.post(
-        "/api/v1/ofertas/",
+        "/api/v1/ofertas",
         headers={"Authorization": f"Bearer {token}"},
         data={
             "titulo": "Almuerzo",
