@@ -3,24 +3,26 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 from app.db.session import get_db
 from app.services.auth import decode_token
-from fastapi import Header
+from fastapi import Header, Request
 from app.ofertas.schemas import OfertaCreate, OfertaResponse
 from app.ofertas.services import OfertaService
 from app.social.models import User
 
-router = APIRouter()
+router = APIRouter(redirect_slashes=False)
 
-def get_current_user(authorization: str = Header(...), db: Session = Depends(get_db)) -> User:
+def get_current_user(authorization: str | None = Header(None), db: Session = Depends(get_db)) -> User:
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Debes iniciar sesión para calificar")
     if not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Token inválido")
+        raise HTTPException(status_code=401, detail="Debes iniciar sesión para calificar")
     token = authorization.split(" ")[1]
     payload = decode_token(token)
     if not payload:
-        raise HTTPException(status_code=401, detail="Token inválido o expirado")
+        raise HTTPException(status_code=401, detail="Debes iniciar sesión para calificar")
     user_id = int(payload.get("sub"))
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=401, detail="Usuario no encontrado")
+        raise HTTPException(status_code=401, detail="Debes iniciar sesión para calificar")
     return user
 
 @router.post("/", response_model=OfertaResponse, status_code=status.HTTP_201_CREATED)
@@ -47,6 +49,10 @@ def publicar_oferta(
         descripcion=descripcion
     )
     return OfertaService.publicar_oferta(db, data, foto, current_user.id)
+
+@router.get("", response_model=list[OfertaResponse])
+def listar_ofertas_sin_slash(db: Session = Depends(get_db), page: int = Query(1, ge=1), size: int = Query(10, ge=1, le=100)):
+    return OfertaService.obtener_feed(db, page, size)
 
 @router.get("/", response_model=list[OfertaResponse])
 def listar_ofertas(db: Session = Depends(get_db), page: int = Query(1, ge=1), size: int = Query(10, ge=1, le=100)):

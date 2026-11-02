@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent))
+sys.path.append(str(Path(__file__).resolve().parent / "bot"))
 
 from fastapi import FastAPI
 from app.api.health import router as health_router
@@ -12,7 +13,7 @@ from app.ofertas.models import OfertaComunitaria
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Student Club Discounts API")
+app = FastAPI(title="Student Club Discounts API", redirect_slashes=False)
 
 app.include_router(health_router, prefix="/api/v1")
 app.include_router(auth_router, prefix="/api/v1/auth")
