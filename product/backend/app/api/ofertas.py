@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, UploadFile, File, Form, status, HTTPException, Query, Body
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from datetime import datetime
 from app.db.session import get_db
@@ -9,6 +10,9 @@ from app.ofertas.services import OfertaService
 from app.social.models import User
 
 router = APIRouter()
+
+class CalificacionIn(BaseModel):
+    puntuacion: int = Field(..., ge=1, le=5)
 
 def get_current_user(authorization: str | None = Header(None), db: Session = Depends(get_db)) -> User:
     if not authorization or not authorization.startswith("Bearer "):
@@ -53,9 +57,9 @@ def obtener_mapa():
 @router.post("/{oferta_id}/calificar")
 def calificar_oferta(
     oferta_id: int,
-    puntuacion: int = Body(..., ge=1, le=5),
+    calif_in: CalificacionIn,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    promedio = OfertaService.calificar_oferta(db, oferta_id, current_user.id, puntuacion)
+    promedio = OfertaService.calificar_oferta(db, oferta_id, current_user.id, calif_in.puntuacion)
     return {"promedio": promedio}

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 
 class OfertaCreate(BaseModel):
@@ -17,6 +17,19 @@ class OfertaResponse(BaseModel):
     descripcion: str
     imagen: str | None
     autor_id: int
+    autor_username: str | None = None
+
+    @field_validator('autor_username', mode='before')
+    @classmethod
+    def get_username(cls, v, info):
+        if v is not None:
+            return v
+        values = info.data
+        # Si el modelo SQLAlchemy tiene relación 'autor'
+        obj = info.context.get('obj') if info.context else None
+        if obj and hasattr(obj, 'autor') and obj.autor:
+            return obj.autor.username
+        return v
 
     class Config:
         from_attributes = True

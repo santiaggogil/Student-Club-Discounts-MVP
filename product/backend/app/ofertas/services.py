@@ -26,7 +26,7 @@ class OfertaService:
             filepath = os.path.join(UPLOAD_DIR, filename)
             with open(filepath, "wb") as f:
                 f.write(contents)
-            return f"/uploads/{filename}"
+            return f"/api/v1/uploads/{filename}"
         except Exception:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -36,11 +36,28 @@ class OfertaService:
     @staticmethod
     def publicar_oferta(db: Session, data: OfertaCreate, file: UploadFile, autor_id: int) -> OfertaComunitaria:
         imagen_url = OfertaService.procesar_y_guardar_imagen(file)
-        return OfertaRepository.crear(db, data, imagen_url, autor_id)
+        oferta = OfertaRepository.crear(db, data, imagen_url, autor_id)
+        oferta.autor_username = oferta.autor.username if oferta.autor else None
+        return oferta
 
     @staticmethod
-    def obtener_feed(db: Session, page: int, size: int) -> list[OfertaComunitaria]:
-        return OfertaRepository.listar_vigentes(db, page, size)
+    def obtener_feed(db: Session, page: int, size: int) -> list[dict]:
+        ofertas = OfertaRepository.listar_vigentes(db, page, size)
+        resultado = []
+        for o in ofertas:
+            d = {
+                "id": o.id,
+                "titulo": o.titulo,
+                "precio": o.precio,
+                "ubicacion": o.ubicacion,
+                "vigencia": o.vigencia,
+                "descripcion": o.descripcion,
+                "imagen": o.imagen,
+                "autor_id": o.autor_id,
+                "autor_username": o.autor.username if o.autor else None
+            }
+            resultado.append(d)
+        return resultado
 
     @staticmethod
     def obtener_datos_mapa():

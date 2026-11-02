@@ -12,6 +12,7 @@ class OfertaComunitaria(Base):
     descripcion = Column(String, nullable=False)
     imagen = Column(String, nullable=True)
     autor_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    autor = relationship("User")
     calificaciones = relationship("Calificacion", back_populates="oferta")
 
 class Calificacion(Base):

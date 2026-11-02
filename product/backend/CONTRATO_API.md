@@ -38,10 +38,10 @@
 - **Auth**: Requerida (JWT).
 - **Entrada (Multipart Form Data)**:
   - `foto`, `precio`, `ubicacion`, `vigencia`, `titulo`, `descripcion`
-- **Salida (201)**: `{"id": 1, ...}`
+- **Salida (201)**: `{"id": 1, ..., "autor_username": "cazador"}`
 
 ### GET /api/v1/ofertas
-- **Descripción**: Obtiene el feed de ofertas comunitarias vigentes (paginado).
+- **Descripción**: Obtiene el feed de ofertas comunitarias vigentes (paginado) incluyendo la URL relativa de imagen bajo /api/v1/uploads/ y el nombre del autor (autor_username).
 - **Auth**: Ninguna.
 - **Entrada (Query Params)**:
   - `page` (int, opcional, default 1)
@@ -61,6 +61,13 @@
   - 401: No autenticado.
   - 404: Oferta no encontrada.
   - 422: Puntuación fuera de rango.
+
+## Archivos Estáticos (Imágenes)
+
+### GET /api/v1/uploads/{filename}
+- **Descripción**: Sirve la imagen subida de la oferta.
+- **Auth**: Ninguna.
+- **Salida (200)**: Archivo de imagen.
 
 ## Mapa de Ofertas (HU-20)
 
