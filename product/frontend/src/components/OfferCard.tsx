@@ -8,8 +8,19 @@ interface OfferCardProps {
 export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
   const [promedio, setPromedio] = useState(offer.calificacion || 0);
   const [total, setTotal] = useState(offer.total_calificaciones || 0);
+  const [imgError, setImgError] = useState(false);
   const autorNombre = offer.autor_username || offer.autor || 'Anónimo';
-  const imageUrl = offer.foto ? `/api/v1${offer.foto}` : '/placeholder.jpg';
+
+  let imageUrl = '';
+  if (offer.foto) {
+    if (offer.foto.startsWith('/api')) {
+      imageUrl = offer.foto;
+    } else if (offer.foto.startsWith('/uploads/')) {
+      imageUrl = `/api/v1${offer.foto}`;
+    } else {
+      imageUrl = offer.foto;
+    }
+  }
 
   const handleUpdateRating = (nuevoPromedio: number, nuevoTotal: number) => {
     setPromedio(nuevoPromedio);
@@ -30,7 +41,18 @@ export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
         </div>
       </div>
 
-      <img src={imageUrl} alt={offer.titulo} onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }} style={{ width: '100%', height: '220px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.75rem' }} />
+      {imageUrl && !imgError ? (
+        <img 
+          src={imageUrl} 
+          alt={offer.titulo} 
+          onError={() => setImgError(true)} 
+          style={{ width: '100%', height: '220px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.75rem' }} 
+        />
+      ) : (
+        <div data-testid="image-error-fallback" style={{ width: '100%', height: '220px', backgroundColor: '#f1f5f9', borderRadius: '8px', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+          Imagen no disponible
+        </div>
+      )}
       
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
         <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--primary-blue, #0056b3)' }}>
