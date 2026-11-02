@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from app.ofertas.schemas import OfertaCreate
 from app.ofertas.repository import OfertaRepository
 from app.ofertas.models import OfertaComunitaria
+from bot_ofertas import RepositorioOfertas, cargar_sedes
 
 UPLOAD_DIR = "backend/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -40,6 +41,16 @@ class OfertaService:
     @staticmethod
     def obtener_feed(db: Session, page: int, size: int) -> list[OfertaComunitaria]:
         return OfertaRepository.listar_vigentes(db, page, size)
+
+    @staticmethod
+    def obtener_datos_mapa():
+        try:
+            repo = RepositorioOfertas("backend/bot/ofertas_bot.db")
+            ofertas = repo.ofertas_vigentes()
+            sedes = cargar_sedes().get("sedes", {})
+            return {"ofertas": ofertas, "sedes": sedes}
+        except Exception:
+            raise HTTPException(status_code=503, detail="Datos de mapa no disponibles")
 
     @staticmethod
     def calificar_oferta(db: Session, oferta_id: int, usuario_id: int, puntuacion: int) -> float:

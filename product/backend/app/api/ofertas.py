@@ -52,6 +52,10 @@ def publicar_oferta(
 def listar_ofertas(db: Session = Depends(get_db), page: int = Query(1, ge=1), size: int = Query(10, ge=1, le=100)):
     return OfertaService.obtener_feed(db, page, size)
 
+@router.get("/mapa")
+def obtener_mapa():
+    return OfertaService.obtener_datos_mapa()
+
 @router.post("/{oferta_id}/calificar")
 def calificar_oferta(
     oferta_id: int,

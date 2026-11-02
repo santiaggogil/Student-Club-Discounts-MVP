@@ -61,3 +61,12 @@
   - 401: No autenticado.
   - 404: Oferta no encontrada.
   - 422: Puntuación fuera de rango.
+
+## Mapa de Ofertas (HU-20)
+
+### GET /api/v1/ofertas/mapa
+- **Descripción**: Obtiene las ofertas de supermercados y sedes para el mapa interactivo.
+- **Auth**: Ninguna.
+- **Salida (200)**: `{"ofertas": [...], "sedes": {...}}`
+- **Errores**:
+  - 503: Servicio de datos no disponible.
