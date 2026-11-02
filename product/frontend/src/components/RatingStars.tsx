@@ -5,7 +5,7 @@ interface RatingStarsProps {
   ofertaId: number;
   initialRating: number;
   isOwner: boolean;
-  onRate: (newRating: number) => void;
+  onRate: (newRating: number, newTotal: number) => void;
 }
 
 export const RatingStars: React.FC<RatingStarsProps> = ({ ofertaId, initialRating, isOwner, onRate }) => {
@@ -21,11 +21,11 @@ export const RatingStars: React.FC<RatingStarsProps> = ({ ofertaId, initialRatin
     try {
       const response = await api.post(`/ofertas/${ofertaId}/calificar`, { puntuacion: val });
       setRating(val);
-      if (response.data && typeof response.data.promedio === 'number') {
-        onRate(response.data.promedio);
+      if (response.data) {
+        onRate(response.data.promedio, response.data.total_calificaciones);
       }
     } catch (err: any) {
-      const msg = err.response?.data?.detail || err.response?.data?.message || 'Error al calificar';
+      const msg = err.response?.data?.detail || 'Error al calificar';
       setErrorMsg(typeof msg === 'string' ? msg : 'Error al calificar');
     }
   };
@@ -37,11 +37,7 @@ export const RatingStars: React.FC<RatingStarsProps> = ({ ofertaId, initialRatin
           <span
             key={star}
             onClick={() => handleRate(star)}
-            style={{
-              fontSize: '1.2rem',
-              color: star <= rating ? '#FFD700' : '#e2e8f0',
-              transition: 'color 0.2s'
-            }}
+            style={{ fontSize: '1.2rem', color: star <= rating ? '#FFD700' : '#e2e8f0', transition: 'color 0.2s' }}
             title={isOwner ? 'No puedes calificar tu propia oferta' : `Calificar con ${star} estrellas`}
           >
             ★
