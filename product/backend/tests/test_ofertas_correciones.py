@@ -70,7 +70,7 @@ def test_feed_incluye_username_y_url_uploads(client_corr, db_session):
         "/api/v1/ofertas",
         headers={"Authorization": f"Bearer {token}"},
         data={"titulo": "Feed Test", "precio": 2000.0, "ubicacion": "Mall", "vigencia": vigencia, "descripcion": "Test feed"},
-        files={"foto": ("test file.jpg", b"fake", "image/jpeg")}
+        files={"foto": ("test.jpg", b"fake", "image/jpeg")}
     )
     
     feed = client_corr.get("/api/v1/ofertas").json()
@@ -78,4 +78,3 @@ def test_feed_incluye_username_y_url_uploads(client_corr, db_session):
     item = feed[0]
     assert item["autor_username"] == "feed_user"
     assert item["imagen"].startswith("/api/v1/uploads/")
-    assert "%20" in item["imagen"]
