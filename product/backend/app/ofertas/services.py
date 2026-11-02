@@ -40,3 +40,14 @@ class OfertaService:
     @staticmethod
     def obtener_feed(db: Session, page: int, size: int) -> list[OfertaComunitaria]:
         return OfertaRepository.listar_vigentes(db, page, size)
+
+    @staticmethod
+    def calificar_oferta(db: Session, oferta_id: int, usuario_id: int, puntuacion: int) -> float:
+        oferta = OfertaRepository.obtener_por_id(db, oferta_id)
+        if not oferta:
+            raise HTTPException(status_code=404, detail="Oferta no encontrada")
+        if oferta.autor_id == usuario_id:
+            raise HTTPException(status_code=400, detail="No puedes calificar tu propia oferta")
+        
+        OfertaRepository.guardar_calificacion(db, oferta_id, usuario_id, puntuacion)
+        return OfertaRepository.calcular_promedio(db, oferta_id)

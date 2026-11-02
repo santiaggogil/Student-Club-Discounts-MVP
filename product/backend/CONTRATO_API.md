@@ -47,3 +47,17 @@
   - `page` (int, opcional, default 1)
   - `size` (int, opcional, default 10)
 - **Salida (200)**: Lista de ofertas comunitarias.
+
+## Calificación de Ofertas (HU-11)
+
+### POST /api/v1/ofertas/{oferta_id}/calificar
+- **Descripción**: Califica una oferta (1-5 estrellas). Si ya existe, actualiza la calificación.
+- **Auth**: Requerida (JWT).
+- **Entrada (JSON)**:
+  - `puntuacion` (int, obligatorio, 1-5)
+- **Salida (200)**: `{"promedio": 4.5}`
+- **Errores**:
+  - 400: No se puede calificar propia oferta.
+  - 401: No autenticado.
+  - 404: Oferta no encontrada.
+  - 422: Puntuación fuera de rango.

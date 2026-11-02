@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, UploadFile, File, Form, status, HTTPException, Query
+from fastapi import APIRouter, Depends, UploadFile, File, Form, status, HTTPException, Query, Body
 from sqlalchemy.orm import Session
 from datetime import datetime
 from app.db.session import get_db
@@ -51,3 +51,13 @@ def publicar_oferta(
 @router.get("/", response_model=list[OfertaResponse])
 def listar_ofertas(db: Session = Depends(get_db), page: int = Query(1, ge=1), size: int = Query(10, ge=1, le=100)):
     return OfertaService.obtener_feed(db, page, size)
+
+@router.post("/{oferta_id}/calificar")
+def calificar_oferta(
+    oferta_id: int,
+    puntuacion: int = Body(..., ge=1, le=5),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    promedio = OfertaService.calificar_oferta(db, oferta_id, current_user.id, puntuacion)
+    return {"promedio": promedio}
