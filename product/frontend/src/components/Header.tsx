@@ -5,7 +5,7 @@ export const Header: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
+  const checkAuth = () => {
     const token = localStorage.getItem('token');
     const timestamp = localStorage.getItem('token_timestamp');
     if (token) {
@@ -22,12 +22,24 @@ export const Header: React.FC = () => {
     } else {
       setIsAuthenticated(false);
     }
+  };
+
+  useEffect(() => {
+    checkAuth();
+    const handleStorage = () => checkAuth();
+    window.addEventListener('storage', handleStorage);
+    window.addEventListener('auth-change', handleStorage);
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('auth-change', handleStorage);
+    };
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('token_timestamp');
     setIsAuthenticated(false);
+    window.dispatchEvent(new Event('auth-change'));
     navigate('/login');
   };
 
@@ -60,7 +72,7 @@ export const Header: React.FC = () => {
 
         {isAuthenticated ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <NavLink to="/" className="btn-primary" style={{ textDecoration: 'none' }}>
+            <NavLink to="/publicar" className="btn-primary" style={{ textDecoration: 'none' }}>
               + Publicar Oferta
             </NavLink>
             <button onClick={handleLogout} className="btn-secondary-outline" style={{ padding: '0.4rem 1rem', cursor: 'pointer' }}>

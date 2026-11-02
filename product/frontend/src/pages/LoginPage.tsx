@@ -36,6 +36,7 @@ export const LoginPage: React.FC = () => {
       const { access_token } = response.data;
       localStorage.setItem('token', access_token);
       localStorage.setItem('token_timestamp', Date.now().toString());
+      window.dispatchEvent(new Event('auth-change'));
       navigate('/');
     } catch (err: any) {
       if (err.response?.status === 401) {
