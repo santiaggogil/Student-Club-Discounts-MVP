@@ -22,7 +22,8 @@ class OfertaService:
             )
         try:
             contents = file.file.read()
-            filename = f"{uuid.uuid4()}_{file.filename}"
+            ext = os.path.splitext(file.filename)[1] if file.filename else ".jpg"
+            filename = f"{uuid.uuid4()}{ext}"
             filepath = os.path.join(UPLOAD_DIR, filename)
             with open(filepath, "wb") as f:
                 f.write(contents)
@@ -37,7 +38,6 @@ class OfertaService:
     def publicar_oferta(db: Session, data: OfertaCreate, file: UploadFile, autor_id: int) -> OfertaResponse:
         imagen_url = OfertaService.procesar_y_guardar_imagen(file)
         oferta = OfertaRepository.crear(db, data, imagen_url, autor_id)
-        # Recargar para asegurar autor
         oferta = OfertaRepository.obtener_por_id(db, oferta.id)
         return OfertaResponse.model_validate(oferta, context={"obj": oferta})
 
