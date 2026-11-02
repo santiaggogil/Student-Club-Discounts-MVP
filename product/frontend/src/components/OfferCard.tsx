@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { RatingStars } from './RatingStars';
 
 interface OfferCardProps {
-  offer: { id: number; titulo: string; descripcion: string; ubicacion: string; precio: number; foto: string; autor_username?: string; autor?: string; calificacion: number; es_propia: boolean };
+  offer: { id: number; titulo: string; descripcion: string; ubicacion: string; precio: number; foto?: string; autor_username?: string; autor?: string; calificacion: number; es_propia: boolean };
 }
 
 export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
-  const [promedio, setPromedio] = useState(offer.calificacion);
+  const [promedio, setPromedio] = useState(offer.calificacion || 0);
   const autorNombre = offer.autor_username || offer.autor || 'Anónimo';
-  const imageUrl = offer.foto.startsWith('http') ? offer.foto : offer.foto;
+  const imageUrl = offer.foto && offer.foto.startsWith('/') ? offer.foto : (offer.foto || '/placeholder.jpg');
 
   return (
     <div className="offer-card" style={{ background: 'var(--card-bg, #fff)', border: '1px solid var(--border-color, #e0e0e0)', borderRadius: '12px', padding: '1rem', marginBottom: '1.25rem', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
@@ -24,7 +24,7 @@ export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
         </div>
       </div>
 
-      <img src={imageUrl} alt={offer.titulo} style={{ width: '100%', height: '220px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.75rem' }} />
+      {offer.foto && <img src={imageUrl} alt={offer.titulo} style={{ width: '100%', height: '220px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.75rem' }} />}
       
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
         <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--primary-blue, #0056b3)' }}>
