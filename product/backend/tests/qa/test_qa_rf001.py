@@ -1,6 +1,5 @@
 import pytest
 from fastapi import status
-from app.services.auth import get_password_hash
 
 def test_tc_001_registro_exitoso_correo(client, db):
     resp = client.post('/api/v1/auth/register', json={'email': 'test@test.com', 'password': 'Password123'})
