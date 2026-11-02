@@ -4,6 +4,7 @@ import { Layout } from './Layout';
 import { RegisterPage } from '../pages/RegisterPage';
 import { LoginPage } from '../pages/LoginPage';
 import { PublishOfferPage } from '../pages/PublishOfferPage';
+import { FeedPage } from '../pages/FeedPage';
 import './tokens.css';
-export const App = () => (_jsx(Router, { children: _jsx(Layout, { children: _jsxs(Routes, { children: [_jsx(Route, { path: "/login", element: _jsx(LoginPage, {}) }), _jsx(Route, { path: "/register", element: _jsx(RegisterPage, {}) }), _jsx(Route, { path: "/publicar", element: _jsx(PublishOfferPage, {}) }), _jsx(Route, { path: "*", element: _jsx("div", { children: "Inicio / Feed de Comunidad (SCD)" }) })] }) }) }));
+export const App = () => (_jsx(Router, { children: _jsx(Layout, { children: _jsxs(Routes, { children: [_jsx(Route, { path: "/login", element: _jsx(LoginPage, {}) }), _jsx(Route, { path: "/register", element: _jsx(RegisterPage, {}) }), _jsx(Route, { path: "/publicar", element: _jsx(PublishOfferPage, {}) }), _jsx(Route, { path: "/", element: _jsx(FeedPage, {}) })] }) }) }));
 export default App;
