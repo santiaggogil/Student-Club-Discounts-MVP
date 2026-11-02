@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from app.api.health import router as health_router
 from app.api.auth import router as auth_router
 from app.api.ofertas import router as ofertas_router
+from app.api.mapa import router as mapa_router
 from app.db.session import engine, Base
 
 Base.metadata.create_all(bind=engine)
@@ -22,6 +23,7 @@ app.mount("/api/v1/uploads", StaticFiles(directory="backend/uploads"), name="upl
 app.include_router(health_router, prefix="/api/v1")
 app.include_router(auth_router, prefix="/api/v1/auth")
 app.include_router(ofertas_router, prefix="/api/v1/ofertas")
+app.include_router(mapa_router, prefix="/api/v1")
 
 if __name__ == "__main__":
     import uvicorn

@@ -1,11 +1,18 @@
 import os
+import sys
 import uuid
+from pathlib import Path
 from urllib.parse import quote
 from fastapi import UploadFile, HTTPException, status
 from sqlalchemy.orm import Session
 from app.ofertas.schemas import OfertaCreate, OfertaResponse
 from app.ofertas.repository import OfertaRepository
 from app.ofertas.models import OfertaComunitaria
+
+bot_path = Path(__file__).resolve().parent.parent.parent / "bot"
+if str(bot_path) not in sys.path:
+    sys.path.insert(0, str(bot_path))
+
 from bot_ofertas import RepositorioOfertas, cargar_sedes
 
 UPLOAD_DIR = "backend/uploads"
@@ -65,7 +72,8 @@ class OfertaService:
     @staticmethod
     def obtener_datos_mapa():
         try:
-            repo = RepositorioOfertas("backend/bot/ofertas_bot.db")
+            db_file = bot_path / "ofertas_bot.db"
+            repo = RepositorioOfertas(db_file)
             ofertas = repo.ofertas_vigentes()
             sedes = cargar_sedes().get("sedes", {})
             return {"ofertas": ofertas, "sedes": sedes}

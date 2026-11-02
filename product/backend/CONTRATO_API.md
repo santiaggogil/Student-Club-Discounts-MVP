@@ -71,6 +71,11 @@
 
 ## Mapa de Ofertas (HU-20)
 
+### GET /api/v1/mapa/ofertas
+- **Descripción**: Obtiene las sedes de tiendas de cadena en Manizales con coordenadas y sus ofertas vigentes recopiladas por el bot. Sedes sin coordenadas se omiten. Si no hay datos, retorna lista vacía [].
+- **Auth**: Ninguna.
+- **Salida (200)**: `[{"cadena": "Éxito", "nombre": "Éxito Cable Plaza", "latitud": 5.05, "longitud": -75.48, "ofertas": [{"producto": "Arroz 1kg", "precio": 3500.0, "vigencia": "2025-01-01T00:00:00"}]}]`
+
 ### GET /api/v1/ofertas/mapa
 - **Descripción**: Obtiene las ofertas de supermercados y sedes para el mapa interactivo.
 - **Auth**: Ninguna.
