@@ -9,12 +9,10 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    # bcrypt limita a 72 bytes. Codificamos a utf-8 antes de truncar.
-    return pwd_context.verify(plain_password.encode('utf-8')[:72], hashed_password)
+    return pwd_context.verify(plain_password, hashed_password)
 
 def get_password_hash(password: str) -> str:
-    # bcrypt limita a 72 bytes. Codificamos a utf-8 antes de truncar.
-    return pwd_context.hash(password.encode('utf-8')[:72])
+    return pwd_context.hash(password)
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
