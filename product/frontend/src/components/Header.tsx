@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 
 export const Header: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const navigate = useNavigate();
 
   const checkAuth = () => {
@@ -54,12 +54,12 @@ export const Header: React.FC = () => {
         <nav>
           <ul className="nav-links">
             <li>
-              <NavLink to="/" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+              <NavLink to="/" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}> 
                 Comunidad
               </NavLink>
             </li>
             <li>
-              <NavLink to="/mapa" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+              <NavLink to="/mapa" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}> 
                 Mapa
               </NavLink>
             </li>
