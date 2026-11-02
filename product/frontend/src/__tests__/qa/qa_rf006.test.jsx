@@ -16,4 +16,17 @@ describe('QA RF-006', () => {
     fireEvent.click(screen.getByText(/Siguiente/i));
     await waitFor(() => expect(screen.getByText(/Formato no permitido/i)).toBeInTheDocument());
   });
+
+  it('TC-027 realiza petición POST al publicar oferta', async () => {
+    api.post.mockResolvedValueOnce({ data: { id: 1 } });
+    render(<MemoryRouter><PublishOfferPage /></MemoryRouter>);
+    fireEvent.change(screen.getByLabelText(/foto/i), { target: { files: [new File(['data'], 'test.jpg', { type: 'image/jpeg' })] } });
+    fireEvent.click(screen.getByText(/Siguiente/i));
+    fireEvent.change(screen.getByLabelText(/precio/i), { target: { value: '100' } });
+    fireEvent.change(screen.getByLabelText(/ubicación/i), { target: { value: 'Manizales' } });
+    fireEvent.click(screen.getByText(/Siguiente/i));
+    fireEvent.change(screen.getByLabelText(/descripción/i), { target: { value: 'Oferta' } });
+    fireEvent.click(screen.getByText(/Publicar/i));
+    await waitFor(() => expect(api.post).toHaveBeenCalled());
+  });
 });
