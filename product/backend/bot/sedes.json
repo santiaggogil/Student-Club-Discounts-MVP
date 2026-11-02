@@ -1,0 +1,12 @@
+{
+  "_nota": "Sedes físicas en Manizales para ubicar las ofertas del bot en el mapa. Completar con datos verificados (dirección y coordenadas tomadas de un mapa); no se incluyen coordenadas inventadas. Una oferta de tienda en línea se asocia a todas las sedes de esa tienda.",
+  "ciudad": "Manizales",
+  "sedes": {
+    "exito": [],
+    "carulla": [],
+    "olimpica": [],
+    "jumbo": [],
+    "d1": []
+  },
+  "formato_sede": {"nombre": "Éxito Cable Plaza (ejemplo de nombre)", "direccion": "texto", "lat": 0.0, "lon": 0.0}
+}

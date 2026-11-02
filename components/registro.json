@@ -1,0 +1,10 @@
+[
+  {
+    "id": "bot-de-ofertas-y-notificaciones-telegram-componente-existente",
+    "nombre": "Bot de ofertas y notificaciones Telegram (componente existente)",
+    "descripcion": "Componente bot-ofertas integrado desde el repositorio",
+    "ruta": "backend/bot",
+    "contrato": "components/bot-de-ofertas-y-notificaciones-telegram-componente-existente.md",
+    "archivos": 16
+  }
+]

@@ -1,0 +1,11 @@
+[
+  {"productName": "Arroz Diana 1000 g", "link": "https://tienda.ejemplo/arroz-diana/p",
+   "categories": ["/Mercado/Despensa/Arroz/"],
+   "items": [{"images": [{"imageUrl": "https://tienda.ejemplo/img/arroz.jpg"}],
+              "sellers": [{"commertialOffer": {"Price": 4200, "ListPrice": 5000, "AvailableQuantity": 30}}]}]},
+  {"productName": "Leche entera 1 L", "link": "/leche-entera/p", "categories": ["/Mercado/Lácteos/"],
+   "items": [{"images": [], "sellers": [{"commertialOffer": {"Price": 4500, "ListPrice": 4500, "AvailableQuantity": 10}}]}]},
+  {"productName": "Producto sin precio", "link": "/x/p", "items": [{"sellers": [{"commertialOffer": {"Price": 0, "ListPrice": 0}}]}]},
+  {"productName": "Atún en agua 160 g", "link": "/atun/p", "categories": [],
+   "items": [{"sellers": [{"commertialOffer": {"Price": 6990, "ListPrice": 8990, "AvailableQuantity": 0}}]}]}
+]

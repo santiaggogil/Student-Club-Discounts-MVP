@@ -1,0 +1,20 @@
+{
+  "_nota": "Fuentes del bot. 'verificado_en_vivo' indica si alguien del equipo comprobó la fuente con 'python -m bot_ofertas verificar' desde una red con acceso a internet. Las consultas son términos de búsqueda de alimentos.",
+  "fuentes": [
+    {"id": "exito", "tienda": "Éxito", "tipo": "vtex", "url_base": "https://www.exito.com", "activo": true,
+     "consultas": ["arroz", "huevos", "leche", "atun", "pasta", "pollo"], "max_resultados": 50, "verificado_en_vivo": false,
+     "notas": "Tienda sobre VTEX: buscador público de catálogo en JSON."},
+    {"id": "carulla", "tienda": "Carulla", "tipo": "vtex", "url_base": "https://www.carulla.com", "activo": true,
+     "consultas": ["arroz", "huevos", "leche", "atun", "pasta"], "max_resultados": 50, "verificado_en_vivo": false,
+     "notas": "Mismo grupo que Éxito (VTEX)."},
+    {"id": "olimpica", "tienda": "Olímpica", "tipo": "vtex", "url_base": "https://www.olimpica.com", "activo": true,
+     "consultas": ["arroz", "huevos", "leche", "atun", "pasta"], "max_resultados": 50, "verificado_en_vivo": false,
+     "notas": "Tienda sobre VTEX."},
+    {"id": "jumbo", "tienda": "Jumbo", "tipo": "vtex", "url_base": "https://www.tiendasjumbo.co", "activo": true,
+     "consultas": ["arroz", "huevos", "leche", "atun", "pasta"], "max_resultados": 50, "verificado_en_vivo": false,
+     "notas": "Tienda sobre VTEX."},
+    {"id": "d1", "tienda": "D1", "tipo": "html", "url_base": "https://domicilios.tiendasd1.com", "activo": false,
+     "paginas": [], "selectores": {}, "verificado_en_vivo": false,
+     "notas": "Pendiente: inspeccionar el sitio y completar páginas y selectores CSS (item, nombre, precio, precio_anterior, enlace, imagen)."}
+  ]
+}
