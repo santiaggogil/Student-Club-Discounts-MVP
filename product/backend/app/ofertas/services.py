@@ -40,7 +40,13 @@ class OfertaService:
         imagen_url = OfertaService.procesar_y_guardar_imagen(file)
         oferta = OfertaRepository.crear(db, data, imagen_url, autor_id)
         oferta = OfertaRepository.obtener_por_id(db, oferta.id)
-        return OfertaResponse.model_validate(oferta)
+        promedio = OfertaRepository.calcular_promedio(db, oferta.id)
+        total = len(oferta.calificaciones) if oferta.calificaciones else 0
+        resp = OfertaResponse.model_validate(oferta)
+        resp.autor_username = oferta.autor.username if oferta.autor else None
+        resp.promedio_calificacion = promedio
+        resp.total_calificaciones = total
+        return resp
 
     @staticmethod
     def obtener_feed(db: Session, page: int, size: int) -> list[OfertaResponse]:
@@ -48,14 +54,12 @@ class OfertaService:
         res = []
         for o in ofertas:
             promedio = OfertaRepository.calcular_promedio(db, o.id)
-            total = len(o.calificaciones)
-            o_dict = OfertaResponse.model_validate(o).model_dump()
-            o_dict.update({
-                "autor_username": o.autor.username if o.autor else "Desconocido",
-                "promedio_calificacion": promedio,
-                "total_calificaciones": total
-            })
-            res.append(OfertaResponse(**o_dict))
+            total = len(o.calificaciones) if o.calificaciones else 0
+            resp = OfertaResponse.model_validate(o)
+            resp.autor_username = o.autor.username if o.autor else None
+            resp.promedio_calificacion = promedio
+            resp.total_calificaciones = total
+            res.append(resp)
         return res
 
     @staticmethod
