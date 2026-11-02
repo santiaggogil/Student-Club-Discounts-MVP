@@ -27,7 +27,8 @@ it('TC-034 no permite calificar oferta propia', async () => {
 
 it('TC-035 solicita iniciar sesión si no está autenticado', async () => {
   const onRate = vi.fn();
-  global.fetch = vi.fn().mockRejectedValue({ response: { status: 401 } });
+  const mockError = { response: { status: 401 } };
+  vi.mock('../../services/api', () => ({ default: { post: vi.fn().mockRejectedValue(mockError) } }));
   window.alert = vi.fn();
   render(<RatingStars ofertaId={1} initialRating={0} isOwner={false} onRate={onRate} />);
   fireEvent.click(screen.getAllByText('★')[2]);

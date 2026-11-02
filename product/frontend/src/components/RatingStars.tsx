@@ -19,7 +19,7 @@ export const RatingStars: React.FC<RatingStarsProps> = ({ ofertaId, initialRatin
     } catch (err: any) {
       if (err.response?.status === 401) alert('Debes iniciar sesión para calificar');
       else if (err.response?.status === 400) alert('No puedes calificar tu propia oferta');
-      else alert('Error al calificar');
+      else alert('Debes iniciar sesión para calificar');
     }
   };
 
