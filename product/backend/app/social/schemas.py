@@ -11,10 +11,8 @@ class UserUpdate(BaseModel):
     @field_validator('biografia')
     @classmethod
     def sanitize_biografia(cls, v):
-        if v is None:
-            return v
-        clean = re.sub(r'<[^>]*>', '', v)
-        return html.unescape(clean)
+        if v is None: return v
+        return html.unescape(re.sub(r'<[^>]*>', '', v))
 
 class UserProfileResponse(BaseModel):
     id: int
@@ -24,12 +22,7 @@ class UserProfileResponse(BaseModel):
     foto_perfil: str | None
     biografia: str | None
     seguidores_privados: bool
-    seguidores_count: int
-    seguidos_count: int
     ofertas_publicadas: list = []
-    seguidores: list | None = None
-    seguidos: list | None = None
-    lo_sigo: bool = False
 
     class Config:
         from_attributes = True

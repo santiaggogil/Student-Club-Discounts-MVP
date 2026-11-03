@@ -2,40 +2,18 @@ from pydantic import BaseModel, Field, field_validator
 from datetime import datetime, timezone
 
 class OfertaCreate(BaseModel):
-    titulo: str = Field(..., min_length=1, description="Título obligatorio")
-    precio: float = Field(..., gt=0, description="Precio obligatorio mayor a 0")
-    ubicacion: str = Field(..., min_length=1, description="Ubicación obligatoria")
-    vigencia: datetime = Field(..., description="Fecha y hora de vigencia")
-    descripcion: str = Field(..., min_length=1, description="Descripción breve obligatoria")
+    titulo: str = Field(..., min_length=1)
+    precio: float = Field(..., gt=0)
+    ubicacion: str = Field(..., min_length=1)
+    vigencia: datetime
+    descripcion: str = Field(..., min_length=1)
 
     @field_validator('vigencia', mode='before')
     @classmethod
     def parse_vigencia(cls, v):
-        if isinstance(v, datetime):
-            dt = v
-        elif isinstance(v, str):
-            s = v.strip()
-            if s.endswith('Z'):
-                s = s[:-1] + '+00:00'
-            try:
-                dt = datetime.fromisoformat(s)
-            except ValueError:
-                raise ValueError("Formato de fecha de vigencia inválido")
-        else:
-            raise ValueError("Formato de fecha de vigencia inválido")
-        
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
-        
-        return dt.astimezone(timezone.utc)
-
-    @field_validator('vigencia')
-    @classmethod
-    def validate_vigencia(cls, v):
-        now = datetime.now(timezone.utc)
-        if v < now:
-            raise ValueError("La vigencia no puede ser una fecha pasada")
-        return v
+        if isinstance(v, datetime): return v
+        dt = datetime.fromisoformat(v.replace('Z', '+00:00'))
+        return dt.astimezone(timezone.utc) if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
 
 class OfertaResponse(BaseModel):
     id: int
@@ -49,8 +27,7 @@ class OfertaResponse(BaseModel):
     autor_username: str | None = None
     promedio_calificacion: float = 0.0
     total_calificaciones: int = 0
-    vigente: bool
-    vence_en: str
+    mi_calificacion: int | None = None
 
     class Config:
         from_attributes = True

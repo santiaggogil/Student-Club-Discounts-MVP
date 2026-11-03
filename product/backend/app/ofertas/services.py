@@ -2,7 +2,7 @@ import os, uuid, unicodedata
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, func
 from app.ofertas.models import OfertaComunitaria, Calificacion
-from app.ofertas.schemas import OfertaResponse
+from app.ofertas.schemas import OfertaResponse, OfertaCreate
 from app.ofertas.repository import OfertaRepository
 
 class OfertaService:
@@ -27,9 +27,36 @@ class OfertaService:
         if user_id:
             c = db.query(Calificacion).filter(Calificacion.oferta_id == oferta.id, Calificacion.usuario_id == user_id).first()
             if c: mi_cal = c.puntuacion
-        return OfertaResponse(id=oferta.id, titulo=oferta.titulo, precio=oferta.precio, ubicacion=oferta.ubicacion, vigencia=oferta.vigencia, descripcion=oferta.descripcion, imagen=oferta.imagen, autor_id=oferta.autor_id, autor_username=oferta.autor.username, promedio_calificacion=promedio, total_calificaciones=len(calificaciones), vigente=True, vence_en="", mi_calificacion=mi_cal)
+        return OfertaResponse(id=oferta.id, titulo=oferta.titulo, precio=oferta.precio, ubicacion=oferta.ubicacion, vigencia=oferta.vigencia, descripcion=oferta.descripcion, imagen=oferta.imagen, autor_id=oferta.autor_id, autor_username=oferta.autor.username, promedio_calificacion=promedio, total_calificaciones=len(calificaciones), mi_calificacion=mi_cal)
 
     @staticmethod
     def obtener_oferta(db: Session, oferta_id: int, user_id: int | None) -> OfertaResponse:
         o = db.query(OfertaComunitaria).filter(OfertaComunitaria.id == oferta_id).first()
         return OfertaService._formatear_oferta(db, o, user_id)
+
+    @staticmethod
+    def calificar_oferta(db: Session, oferta_id: int, user_id: int, puntuacion: int) -> float:
+        OfertaRepository.guardar_calificacion(db, oferta_id, user_id, puntuacion)
+        return OfertaRepository.calcular_promedio(db, oferta_id)
+
+    @staticmethod
+    def publicar_oferta(db, data, foto, autor_id):
+        filename = f"{uuid.uuid4()}.jpg"
+        with open(f"backend/uploads/{filename}", "wb") as f: f.write(foto.file.read())
+        return OfertaRepository.crear(db, data, f"/api/v1/uploads/{filename}", autor_id)
+
+    @staticmethod
+    def editar_oferta(db, oferta_id, data, foto, autor_id):
+        o = db.query(OfertaComunitaria).filter(OfertaComunitaria.id == oferta_id, OfertaComunitaria.autor_id == autor_id).first()
+        if not o: raise Exception("No autorizada")
+        img = None
+        if foto:
+            filename = f"{uuid.uuid4()}.jpg"
+            with open(f"backend/uploads/{filename}", "wb") as f: f.write(foto.file.read())
+            img = f"/api/v1/uploads/{filename}"
+        return OfertaRepository.actualizar(db, o, data, img)
+
+    @staticmethod
+    def eliminar_oferta(db, oferta_id, autor_id):
+        o = db.query(OfertaComunitaria).filter(OfertaComunitaria.id == oferta_id, OfertaComunitaria.autor_id == autor_id).first()
+        if o: OfertaRepository.eliminar(db, o)
