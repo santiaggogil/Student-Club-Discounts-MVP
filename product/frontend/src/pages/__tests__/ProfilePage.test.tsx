@@ -41,4 +41,12 @@ describe('ProfilePage Component (HU-03)', () => {
     await waitFor(() => expect(api.get).toHaveBeenCalledWith('/usuarios/1/seguidores'));
     expect(screen.getByText('seguidor1')).toBeInTheDocument();
   });
+
+  it('abre el modal de edición al hacer clic en el engranaje', async () => {
+    (api.get as any).mockResolvedValue({ data: { id: 1, username: 'cazador' } });
+    render(<MemoryRouter><ProfilePage /></MemoryRouter>);
+    await waitFor(() => expect(screen.getByText('⚙️')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('⚙️'));
+    expect(screen.getByText('Editar Perfil')).toBeInTheDocument();
+  });
 });

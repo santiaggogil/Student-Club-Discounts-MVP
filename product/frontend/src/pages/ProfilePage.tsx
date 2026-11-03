@@ -26,6 +26,7 @@ export const ProfilePage: React.FC = () => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
   const [modalType, setModalType] = useState<'seguidores' | 'seguidos' | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const [formData, setFormData] = useState({
     nombre: '',
@@ -131,6 +132,7 @@ export const ProfilePage: React.FC = () => {
       });
       setProfile(res.data);
       setSuccessMsg('Perfil actualizado exitosamente');
+      setShowEditModal(false);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al actualizar el perfil');
     } finally {
@@ -144,70 +146,57 @@ export const ProfilePage: React.FC = () => {
 
   return (
     <div className="profile-container" style={{ maxWidth: '800px', margin: '0 auto', paddingBottom: '3rem' }}>
-      <div style={{ background: '#fff', borderRadius: '12px', padding: '2rem', border: '1px solid var(--border-color, #e0e0e0)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+      <div style={{ background: '#fff', borderRadius: '12px', padding: '2rem', border: '1px solid var(--border-color, #e0e0e0)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap', position: 'relative' }}>
+        {!isPublic && (
+          <button onClick={() => setShowEditModal(true)} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>⚙️</button>
+        )}
         <div style={{ width: '90px', height: '90px', borderRadius: '50%', background: '#e2e8f0', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: 'bold', color: '#64748b' }}>
-          {profile.foto || profile.foto_url ? (
-            <img src={profile.foto || profile.foto_url} alt={profile.username} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          {profile.foto_perfil ? (
+            <img src={profile.foto_perfil} alt={profile.username} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
             (profile.username || 'U').charAt(0).toUpperCase()
           )}
         </div>
         <div style={{ flex: 1 }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '0.2rem', color: 'var(--text-color)' }}>
-            {profile.nombre || profile.username}
-          </h2>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '0.2rem', color: 'var(--text-color)' }}>{profile.nombre || profile.username}</h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>@{profile.username}</p>
-          <p style={{ fontSize: '0.95rem', color: 'var(--text-color)', marginBottom: '0.75rem' }}>
-            {profile.biografia || 'Sin biografía'}
-          </p>
+          <p style={{ fontSize: '0.95rem', color: 'var(--text-color)', marginBottom: '0.75rem' }}>{profile.biografia || 'Sin biografía'}</p>
           <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.9rem', fontWeight: 600, alignItems: 'center' }}>
             <span style={{ cursor: 'pointer' }} onClick={() => setModalType('seguidores')}>Seguidores: {followersCount}</span>
             <span style={{ cursor: 'pointer' }} onClick={() => setModalType('seguidos')}>Seguidos: {profile.seguidos_count ?? profile.seguidos?.length ?? 0}</span>
             {isPublic && isAuthenticated && myId && profile.id !== myId && (
-              <button onClick={toggleFollow} className={isFollowing ? 'btn-secondary-outline' : 'btn-primary'} style={{ padding: '0.25rem 0.75rem', fontSize: '0.8rem' }}>
-                {isFollowing ? 'Dejar de seguir' : 'Seguir'}
-              </button>
+              <button onClick={toggleFollow} className={isFollowing ? 'btn-secondary-outline' : 'btn-primary'} style={{ padding: '0.25rem 0.75rem', fontSize: '0.8rem' }}>{isFollowing ? 'Dejar de seguir' : 'Seguir'}</button>
             )}
           </div>
         </div>
       </div>
 
-      {modalType && <FollowModal userId={profile.id} type={modalType} onClose={() => setModalType(null)} />}
-
-      {error && <div style={{ color: '#dc3545', background: '#f8d7da', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem' }} role="alert">{error}</div>}
-      {successMsg && <div style={{ color: '#155724', background: '#d4edda', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem' }}>{successMsg}</div>}
-
-      {!isPublic && (
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '2rem', border: '1px solid var(--border-color, #e0e0e0)', marginBottom: '2rem' }}>
-          <h3 style={{ marginBottom: '1.25rem', fontSize: '1.2rem' }}>Editar Mi Perfil</h3>
-          <form onSubmit={handleUpdate} noValidate>
-            <FormInput label="Nombre o Apodo" name="nombre" value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} error={errors.nombre} placeholder="Tu nombre real o apodo" />
-            <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <label htmlFor="biografia" className="form-label">Biografía (texto plano)</label>
-              <textarea id="biografia" value={formData.biografia} onChange={e => setFormData({...formData, biografia: e.target.value})} className="form-control" rows={3} placeholder="Cuéntanos sobre ti..." />
-              {errors.biografia && <span className="form-error" role="alert">{errors.biografia}</span>}
-            </div>
-            <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <label htmlFor="foto" className="form-label">Foto de perfil</label>
-              <input id="foto" type="file" accept="image/jpeg,image/png" onChange={handleFileChange} className="form-control" />
-            </div>
-            <div className="form-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
-              <input type="checkbox" id="seguidores_privados" checked={formData.seguidores_privados} onChange={e => setFormData({...formData, seguidores_privados: e.target.checked})} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
-              <label htmlFor="seguidores_privados" className="form-label" style={{ cursor: 'pointer', marginBottom: 0 }}>Hacer mi lista de seguidores privada</label>
-            </div>
-            <button type="submit" className="btn-primary" disabled={updating}>{updating ? 'Guardando...' : 'Guardar Cambios'}</button>
-          </form>
+      {showEditModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000 }} onClick={() => setShowEditModal(false)}>
+          <div style={{ background: '#fff', padding: '2rem', borderRadius: '12px', width: '90%', maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}><h3>Editar Perfil</h3><button onClick={() => setShowEditModal(false)}>×</button></div>
+            <form onSubmit={handleUpdate}>
+              <FormInput label="Nombre" name="nombre" value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} />
+              <FormInput label="Biografía" name="biografia" value={formData.biografia} onChange={e => setFormData({...formData, biografia: e.target.value})} />
+              <FormInput label="Foto" name="foto" type="file" onChange={handleFileChange} />
+              <button type="submit" className="btn-primary">Guardar</button>
+            </form>
+          </div>
         </div>
       )}
+
+      {modalType && <FollowModal userId={profile.id} type={modalType} onClose={() => setModalType(null)} />}
 
       <div style={{ marginTop: '2rem' }}>
         <h3 style={{ marginBottom: '1rem', fontSize: '1.2rem' }}>{isPublic ? `Ofertas publicadas por @${profile.username}` : 'Mis Ofertas Publicadas'}</h3>
         {(!profile.ofertas || profile.ofertas.length === 0) ? (
           <EmptyState title="Sin ofertas" message="Este usuario aún no ha publicado ofertas comunitarias." />
         ) : (
-          profile.ofertas.map((offer: any) => (
-            <OfferCard key={offer.id} offer={{ ...offer, autor_username: profile.username }} />
-          ))
+          <div style={{ display: 'flex', overflowX: 'auto', gap: '1rem', paddingBottom: '1rem' }}>
+            {profile.ofertas.map((offer: any) => (
+              <div key={offer.id} style={{ minWidth: '280px' }}><OfferCard offer={{ ...offer, autor_username: profile.username }} /></div>
+            ))}
+          </div>
         )}
       </div>
     </div>
