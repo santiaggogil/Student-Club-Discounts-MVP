@@ -13,8 +13,6 @@ class UserUpdate(BaseModel):
     def sanitize_biografia(cls, v):
         if v is None:
             return v
-        # Sanitizar HTML (BR-003: texto plano, rechazar o sanitizar etiquetas)
-        # Eliminamos etiquetas HTML o las escapamos. Sanitizamos convirtiendo entidades y removiendo tags.
         clean = re.sub(r'<[^>]*>', '', v)
         return html.unescape(clean)
 
@@ -30,6 +28,8 @@ class UserProfileResponse(BaseModel):
     seguidos_count: int
     ofertas_publicadas: list = []
     seguidores: list | None = None
+    seguidos: list | None = None
+    lo_sigo: bool = False
 
     class Config:
         from_attributes = True

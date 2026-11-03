@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, UploadFile
-from app.social.models import User
+from app.social.models import User, Seguimiento
 from app.social.schemas import UserUpdate
 from app.ofertas.models import OfertaComunitaria
 import os
@@ -47,18 +47,42 @@ class SocialService:
         
         ofertas = db.query(OfertaComunitaria).filter(OfertaComunitaria.autor_id == target_id).all()
         
-        # Contadores (por ahora 0 o relación si se implementa seguidos/seguidores en modelo futuro)
-        seguidores_count = 0
-        seguidos_count = 0
+        seguidores_count = db.query(Seguimiento).filter(Seguimiento.seguido_id == target_id).count()
+        seguidos_count = db.query(Seguimiento).filter(Seguimiento.seguidor_id == target_id).count()
         
+        lo_sigo = False
+        if current_user and current_user.id != target_id:
+            lo_sigo = db.query(Seguimiento).filter(
+                Seguimiento.seguidor_id == current_user.id,
+                Seguimiento.seguido_id == target_id
+            ).first() is not None
+
         seguidores_detalle = None
         if not target.seguidores_privados or (current_user and current_user.id == target.id):
-            seguidores_detalle = []
+            seguidores_rows = db.query(User).join(Seguimiento, User.id == Seguimiento.seguidor_id).filter(Seguimiento.seguido_id == target_id).all()
+            seguidores_detalle = [
+                {
+                    "id": u.id,
+                    "username": u.username,
+                    "nombre": u.nombre,
+                    "foto_perfil": u.foto_perfil
+                } for u in seguidores_rows
+            ]
+
+        seguidos_rows = db.query(User).join(Seguimiento, User.id == Seguimiento.seguido_id).filter(Seguimiento.seguidor_id == target_id).all()
+        seguidos_detalle = [
+            {
+                "id": u.id,
+                "username": u.username,
+                "nombre": u.nombre,
+                "foto_perfil": u.foto_perfil
+            } for u in seguidos_rows
+        ]
 
         return {
             "id": target.id,
             "username": target.username,
-            "email": None, # Privacidad de email público
+            "email": target.email if (current_user and current_user.id == target.id) else None,
             "nombre": target.nombre,
             "foto_perfil": target.foto_perfil,
             "biografia": target.biografia,
@@ -76,5 +100,46 @@ class SocialService:
                     "imagen": o.imagen
                 } for o in ofertas
             ],
-            "seguidores": seguidores_detalle
+            "seguidores": seguidores_detalle,
+            "seguidos": seguidos_detalle,
+            "lo_sigo": lo_sigo
         }
+
+    @staticmethod
+    def seguir_usuario(db: Session, seguidor_id: int, seguido_id: int) -> dict:
+        if seguidor_id == seguido_id:
+            raise HTTPException(status_code=400, detail="No puedes seguirte a ti mismo")
+        
+        target = db.query(User).filter(User.id == seguido_id).first()
+        if not target:
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        
+        existing = db.query(Seguimiento).filter(
+            Seguimiento.seguidor_id == seguidor_id,
+            Seguimiento.seguido_id == seguido_id
+        ).first()
+        if existing:
+            raise HTTPException(status_code=409, detail="Ya sigues a este usuario")
+        
+        seg = Seguimiento(seguidor_id=seguidor_id, seguido_id=seguido_id)
+        db.add(seg)
+        db.commit()
+        return {"message": "Ahora sigues a este usuario"}
+
+    @staticmethod
+    def dejar_de_seguir_usuario(db: Session, seguidor_id: int, seguido_id: int) -> dict:
+        if seguidor_id == seguido_id:
+            raise HTTPException(status_code=400, detail="No puedes dejar de seguirte a ti mismo")
+        
+        target = db.query(User).filter(User.id == seguido_id).first()
+        if not target:
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        
+        existing = db.query(Seguimiento).filter(
+            Seguimiento.seguidor_id == seguidor_id,
+            Seguimiento.seguido_id == seguido_id
+        ).first()
+        if existing:
+            db.delete(existing)
+            db.commit()
+        return {"message": "Has dejado de seguir a este usuario"}

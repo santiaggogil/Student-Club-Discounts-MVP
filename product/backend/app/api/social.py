@@ -42,3 +42,19 @@ def editar_perfil_propio(
 @router.get("/{id}", response_model=UserProfileResponse)
 def ver_perfil_publico(id: int, current_user: User | None = Depends(get_optional_current_user), db: Session = Depends(get_db)):
     return SocialService.obtener_perfil_publico(db, id, current_user)
+
+@router.post("/{id}/seguir")
+def seguir_usuario(
+    id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    return SocialService.seguir_usuario(db, current_user.id, id)
+
+@router.delete("/{id}/seguir")
+def dejar_de_seguir_usuario(
+    id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    return SocialService.dejar_de_seguir_usuario(db, current_user.id, id)

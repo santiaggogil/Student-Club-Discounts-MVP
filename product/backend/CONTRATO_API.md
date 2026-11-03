@@ -31,12 +31,12 @@
 - **Auth**: Requerida (JWT).
 - **Salida (200)**: `{"message": "Sesión cerrada"}`
 
-## Gestión de Perfil y Social (HU-03)
+## Gestión de Perfil y Social (HU-03, HU-13)
 
 ### GET /api/v1/usuarios/me
 - **Descripción**: Consulta los datos del perfil del usuario autenticado.
 - **Auth**: Requerida (JWT).
-- **Salida (200)**: Datos del perfil (sin contraseña ni su hash).
+- **Salida (200)**: Datos del perfil (sin contraseña ni su hash) incluyendo `seguidores_count`, `seguidos_count`, `seguidores`, `seguidos` y `lo_sigo` (false).
 - **Errores**:
   - 401: No autenticado.
 
@@ -54,10 +54,29 @@
   - 422: Error de validación o formato de imagen inválido.
 
 ### GET /api/v1/usuarios/{id}
-- **Descripción**: Obtiene el perfil público de un usuario y sus ofertas publicadas. Oculta lista de seguidores si está configurada como privada.
+- **Descripción**: Obtiene el perfil público de un usuario, sus ofertas publicadas y relaciones de seguimiento (seguidores, seguidos, lo_sigo). Oculta lista de seguidores si está configurada como privada.
 - **Auth**: Opcional / Requerida.
-- **Salida (200)**: Perfil público y ofertas.
+- **Salida (200)**: Perfil público, ofertas y datos de seguimiento.
 - **Errores**:
+  - 404: Usuario no encontrado.
+
+### POST /api/v1/usuarios/{id}/seguir
+- **Descripción**: Sigue a un usuario. (HU-13)
+- **Auth**: Requerida (JWT).
+- **Salida (200)**: `{"message": "Ahora sigues a este usuario"}`
+- **Errores**:
+  - 400: No puedes seguirte a ti mismo.
+  - 401: No autenticado.
+  - 404: Usuario no encontrado.
+  - 409: Ya sigues a este usuario.
+
+### DELETE /api/v1/usuarios/{id}/seguir
+- **Descripción**: Deja de seguir a un usuario. (HU-13)
+- **Auth**: Requerida (JWT).
+- **Salida (200)**: `{"message": "Has dejado de seguir a este usuario"}`
+- **Errores**:
+  - 400: No puedes dejar de seguirte a ti mismo.
+  - 401: No autenticado.
   - 404: Usuario no encontrado.
 
 ## Ofertas Comunitarias (HU-05, HU-09, HU-12)
