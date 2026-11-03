@@ -14,10 +14,22 @@ export const ProfilePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [followersCount, setFollowersCount] = useState(0);
+  const [loSigo, setLoSigo] = useState(false);
   const [modalType, setModalType] = useState<'seguidores' | 'seguidos' | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
+
+  let currentUserId: number | null = null;
+  try {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      const u = JSON.parse(userStr);
+      currentUserId = u.id !== undefined ? Number(u.id) : null;
+    }
+  } catch (e) {}
+
+  const isOwnProfile = !isPublic || (currentUserId !== null && profile && Number(profile.id) === currentUserId);
 
   const [formData, setFormData] = useState({
     nombre: '',
@@ -34,7 +46,8 @@ export const ProfilePage: React.FC = () => {
       const res = await api.get(endpoint);
       setProfile(res.data);
       setFollowersCount(res.data.seguidores_count ?? 0);
-      if (!isPublic) {
+      setLoSigo(!!res.data.lo_sigo);
+      if (!isPublic || (currentUserId !== null && Number(res.data.id) === currentUserId)) {
         setFormData({
           nombre: res.data.nombre || '',
           biografia: res.data.biografia || '',
@@ -50,6 +63,27 @@ export const ProfilePage: React.FC = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleFollow = async () => {
+    if (!localStorage.getItem('token')) {
+      navigate('/login');
+      return;
+    }
+    if (!profile) return;
+    try {
+      if (loSigo) {
+        await api.delete(`/usuarios/${profile.id}/seguir`);
+        setLoSigo(false);
+        setFollowersCount((prev: number) => Math.max(0, prev - 1));
+      } else {
+        await api.post(`/usuarios/${profile.id}/seguir`);
+        setLoSigo(true);
+        setFollowersCount((prev: number) => prev + 1);
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.detail || 'Error al actualizar seguimiento');
     }
   };
 
@@ -71,7 +105,15 @@ export const ProfilePage: React.FC = () => {
       });
       const updatedUser = res.data;
       setProfile(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      const existingUserStr = localStorage.getItem('user');
+      let mergedUser = updatedUser;
+      if (existingUserStr) {
+        try {
+          const oldU = JSON.parse(existingUserStr);
+          mergedUser = { ...oldU, ...updatedUser };
+        } catch (e) {}
+      }
+      localStorage.setItem('user', JSON.stringify(mergedUser));
       window.dispatchEvent(new Event('auth-change'));
       setShowEditModal(false);
     } catch (err: any) {
@@ -94,8 +136,8 @@ export const ProfilePage: React.FC = () => {
   return (
     <div className="profile-container" style={{ maxWidth: '800px', margin: '0 auto', paddingBottom: '3rem' }}>
       <div style={{ background: '#fff', borderRadius: '12px', padding: '2rem', border: '1px solid var(--border-color, #e0e0e0)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap', position: 'relative' }}>
-        {!isPublic && (
-          <button onClick={() => setShowEditModal(true)} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>⚙️</button>
+        {isOwnProfile && (
+          <button onClick={() => setShowEditModal(true)} aria-label="Configurar perfil" style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>⚙️</button>
         )}
         <div style={{ width: '90px', height: '90px', borderRadius: '50%', background: '#e2e8f0', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: 'bold', color: '#64748b' }}>
           {profile.foto_perfil ? (
@@ -105,8 +147,21 @@ export const ProfilePage: React.FC = () => {
           )}
         </div>
         <div style={{ flex: 1 }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '0.2rem', color: 'var(--text-color)' }}>{profile.nombre || profile.username}</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>@{profile.username}</p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+            <div>
+              <h2 style={{ fontSize: '1.5rem', marginBottom: '0.2rem', color: 'var(--text-color)' }}>{profile.nombre || profile.username}</h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>@{profile.username}</p>
+            </div>
+            {!isOwnProfile && localStorage.getItem('token') && (
+              <button
+                onClick={handleToggleFollow}
+                className={loSigo ? 'btn-secondary-outline' : 'btn-primary'}
+                style={{ padding: '0.5rem 1.25rem', fontSize: '0.9rem' }}
+              >
+                {loSigo ? 'Dejar de seguir' : 'Seguir'}
+              </button>
+            )}
+          </div>
           <p style={{ fontSize: '0.95rem', color: 'var(--text-color)', marginBottom: '0.75rem' }}>{profile.biografia || 'Sin biografía'}</p>
           <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.9rem', fontWeight: 600, alignItems: 'center' }}>
             <span style={{ cursor: 'pointer' }} onClick={() => setModalType('seguidores')}>Seguidores: {followersCount}</span>
