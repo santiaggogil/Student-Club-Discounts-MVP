@@ -12,9 +12,10 @@ from app.api.auth import router as auth_router
 from app.api.ofertas import router as ofertas_router
 from app.api.mapa import router as mapa_router
 from app.api.social import router as social_router
-from app.db.session import engine, Base
+from app.db.session import engine, Base, run_migrations
 
 Base.metadata.create_all(bind=engine)
+run_migrations()
 
 app = FastAPI(title="Student Club Discounts API", redirect_slashes=False)
 
