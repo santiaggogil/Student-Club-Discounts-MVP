@@ -113,8 +113,11 @@ class OfertaService:
             OfertaRepository.eliminar(db, o)
 
     @staticmethod
-    def notificar_seguidores_telegram(oferta_id: int, autor_id: int):
-        db = SessionLocal()
+    def notificar_seguidores_telegram(oferta_id: int, autor_id: int, db: Session = None):
+        close_db = False
+        if db is None:
+            db = SessionLocal()
+            close_db = True
         try:
             autor = db.query(User).filter(User.id == autor_id).first()
             oferta = db.query(OfertaComunitaria).filter(OfertaComunitaria.id == oferta_id).first()
@@ -166,13 +169,7 @@ class OfertaService:
 
             if resultado and getattr(resultado, "bloqueados", None):
                 for b_chat_id in resultado.bloqueados:
-                    try:
-                        chat_id_val = int(b_chat_id)
-                    except (ValueError, TypeError):
-                        chat_id_val = b_chat_id
-                    db.query(User).filter(
-                        (User.telegram_chat_id == chat_id_val) | (User.telegram_chat_id == str(b_chat_id))
-                    ).update(
+                    db.query(User).filter(User.telegram_chat_id == b_chat_id).update(
                         {
                             User.telegram_chat_id: None,
                             User.telegram_usuario: None,
@@ -184,4 +181,5 @@ class OfertaService:
         except Exception as e:
             logger.error(f"Excepción en notificar_seguidores_telegram: {e}")
         finally:
-            db.close()
+            if close_db:
+                db.close()
