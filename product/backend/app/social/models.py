@@ -13,4 +13,3 @@ class User(Base):
     biografia = Column(String, nullable=True)
     seguidores_privados = Column(Boolean, default=False, nullable=False)
 
-    ofertas = relationship("OfertaComunitaria", back_populates="autor")
