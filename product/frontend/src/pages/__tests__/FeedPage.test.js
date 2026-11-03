@@ -2,6 +2,7 @@ import { jsx as _jsx } from "react/jsx-runtime";
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { FeedPage } from '../FeedPage';
 import api from '../../services/api';
 vi.mock('../../services/api', () => ({
@@ -29,7 +30,7 @@ describe('FeedPage Component (HU-12-FE)', () => {
                 }
             ]
         });
-        render(_jsx(FeedPage, {}));
+        render(_jsx(MemoryRouter, { children: _jsx(FeedPage, {}) }));
         await waitFor(() => {
             expect(screen.getByText('Más relevantes')).toBeInTheDocument();
             expect(screen.getByText('Más recientes')).toBeInTheDocument();
@@ -40,7 +41,7 @@ describe('FeedPage Component (HU-12-FE)', () => {
         api.get.mockResolvedValue({
             data: []
         });
-        render(_jsx(FeedPage, {}));
+        render(_jsx(MemoryRouter, { children: _jsx(FeedPage, {}) }));
         await waitFor(() => {
             expect(screen.getByText('Más recientes')).toBeInTheDocument();
         });

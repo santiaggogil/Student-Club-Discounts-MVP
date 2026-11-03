@@ -16,7 +16,7 @@ export const ProfilePage: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
   const isPublic = !!id;
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
+  const [isAuthenticated] = useState<boolean>(!!localStorage.getItem('token'));
   const [myId, setMyId] = useState<number | null>(null);
 
   const [profile, setProfile] = useState<any>(null);
@@ -39,9 +39,12 @@ export const ProfilePage: React.FC = () => {
     setLoading(true);
     setError('');
     try {
-      if (isAuthenticated && !myId) {
-        const me = await api.get('/usuarios/me');
-        setMyId(me.data.id);
+      const token = localStorage.getItem('token');
+      if (token && !myId) {
+        try {
+          const me = await api.get('/usuarios/me');
+          setMyId(me.data.id);
+        } catch (e) {}
       }
       const endpoint = isPublic ? `/usuarios/${id}` : '/usuarios/me';
       const res = await api.get(endpoint);
