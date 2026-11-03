@@ -36,6 +36,11 @@ export const LoginPage: React.FC = () => {
       const { access_token } = response.data;
       localStorage.setItem('token', access_token);
       localStorage.setItem('token_timestamp', Date.now().toString());
+      
+      // Cargar /me tras login exitoso
+      const meRes = await api.get('/usuarios/me');
+      localStorage.setItem('user', JSON.stringify(meRes.data));
+
       window.dispatchEvent(new Event('auth-change'));
       navigate('/');
     } catch (err: any) {

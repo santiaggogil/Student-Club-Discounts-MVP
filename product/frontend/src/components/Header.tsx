@@ -1,13 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import api from '../services/api';
 
 export const Header: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!localStorage.getItem('token'));
   const navigate = useNavigate();
 
   useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        setIsAuthenticated(true);
+        try {
+          const res = await api.get('/usuarios/me');
+          localStorage.setItem('user', JSON.stringify(res.data));
+        } catch (err) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setIsAuthenticated(false);
+        }
+      } else {
+        setIsAuthenticated(false);
+        localStorage.removeItem('user');
+      }
+    };
+    checkAuth();
     const handleAuthChange = () => {
-      setIsAuthenticated(!!localStorage.getItem('token'));
+      checkAuth();
     };
     window.addEventListener('auth-change', handleAuthChange);
     return () => window.removeEventListener('auth-change', handleAuthChange);
@@ -15,6 +34,7 @@ export const Header: React.FC = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     localStorage.removeItem('token_timestamp');
     window.dispatchEvent(new Event('auth-change'));
     navigate('/login');

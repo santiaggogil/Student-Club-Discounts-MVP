@@ -4,7 +4,7 @@ import { RatingStars } from './RatingStars';
 import api from '../services/api';
 
 interface OfferCardProps {
-  offer: { id: number; autor_id?: number; titulo: string; descripcion: string; ubicacion: string; precio: number; imagen?: string; foto?: string; autor_username?: string; autor?: string; calificacion: number; total_calificaciones: number; es_propia: boolean; onDelete?: (id: number) => void };
+  offer: { id: number; autor_id?: number; titulo: string; descripcion: string; ubicacion: string; precio: number; imagen?: string; foto?: string; autor_username?: string; autor?: string; calificacion: number; total_calificaciones: number; es_propia?: boolean; onDelete?: (id: number) => void };
 }
 
 export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
@@ -16,6 +16,15 @@ export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
   const autorNombre = offer.autor_username || offer.autor || 'Anónimo';
   const autorId = offer.autor_id;
   const imageUrl = offer.imagen || offer.foto || '';
+
+  // Obtener usuario autenticado de localStorage
+  let currentUser: any = null;
+  try {
+    const userStr = localStorage.getItem('user');
+    if (userStr) currentUser = JSON.parse(userStr);
+  } catch (e) {}
+
+  const isOwnOffer = offer.es_propia || (currentUser && autorId && Number(currentUser.id) === Number(autorId));
 
   const handleUpdateRating = (nuevoPromedio: number, nuevoTotal: number) => {
     setPromedio(nuevoPromedio);
@@ -36,9 +45,9 @@ export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
 
   return (
     <div className="offer-card" style={{ background: 'var(--card-bg, #fff)', border: '1px solid var(--border-color, #e0e0e0)', borderRadius: '12px', padding: '1rem', marginBottom: '1.25rem', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', position: 'relative' }}>
-      {offer.es_propia && (
+      {isOwnOffer && (
         <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
-          <button onClick={() => setShowMenu(!showMenu)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}>⋮</button>
+          <button onClick={() => setShowMenu(!showMenu)} aria-label="Opciones de oferta" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}>⋮</button>
           {showMenu && (
             <div style={{ position: 'absolute', right: 0, background: '#fff', border: '1px solid #ccc', borderRadius: '4px', padding: '0.5rem', zIndex: 10 }}>
               <button onClick={() => navigate(`/ofertas/${offer.id}/editar`)} style={{ display: 'block', width: '100%', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer' }}>Editar</button>
@@ -91,7 +100,7 @@ export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border-color, #e0e0e0)', paddingTop: '0.75rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <RatingStars ofertaId={offer.id} initialRating={Math.round(promedio)} isOwner={offer.es_propia} onRate={handleUpdateRating} />
+          <RatingStars ofertaId={offer.id} initialRating={Math.round(promedio)} isOwner={!!isOwnOffer} onRate={handleUpdateRating} />
           <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>({promedio.toFixed(1)})</span>
           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{total} votos</span>
         </div>
