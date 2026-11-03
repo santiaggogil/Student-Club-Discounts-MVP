@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, UploadFile, File, Form, status, HTTPException, Header
+from fastapi import APIRouter, Depends, UploadFile, File, Form, status, HTTPException, Header, Query
 from sqlalchemy.orm import Session
 from app.db.session import get_db
-from app.social.models import User
+from app.social.models import User, Seguimiento
 from app.social.schemas import UserUpdate, UserProfileResponse
 from app.social.services import SocialService
 from app.api.ofertas import get_current_user
@@ -42,6 +42,14 @@ def editar_perfil_propio(
 @router.get("/{id}", response_model=UserProfileResponse)
 def ver_perfil_publico(id: int, current_user: User | None = Depends(get_optional_current_user), db: Session = Depends(get_db)):
     return SocialService.obtener_perfil_publico(db, id, current_user)
+
+@router.get("/{id}/seguidores")
+def listar_seguidores(id: int, page: int = Query(1, ge=1), size: int = Query(10, ge=1, le=100), current_user: User | None = Depends(get_optional_current_user), db: Session = Depends(get_db)):
+    return SocialService.listar_seguidores(db, id, page, size, current_user)
+
+@router.get("/{id}/seguidos")
+def listar_seguidos(id: int, page: int = Query(1, ge=1), size: int = Query(10, ge=1, le=100), current_user: User | None = Depends(get_optional_current_user), db: Session = Depends(get_db)):
+    return SocialService.listar_seguidos(db, id, page, size, current_user)
 
 @router.post("/{id}/seguir")
 def seguir_usuario(

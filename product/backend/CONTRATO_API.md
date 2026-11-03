@@ -31,7 +31,7 @@
 - **Auth**: Requerida (JWT).
 - **Salida (200)**: `{"message": "Sesión cerrada"}`
 
-## Gestión de Perfil y Social (HU-03, HU-13)
+## Gestión de Perfil y Social (HU-03, HU-13, HU-14)
 
 ### GET /api/v1/usuarios/me
 - **Descripción**: Consulta los datos del perfil del usuario autenticado.
@@ -57,6 +57,23 @@
 - **Descripción**: Obtiene el perfil público de un usuario, sus ofertas publicadas y relaciones de seguimiento (seguidores, seguidos, lo_sigo). Oculta lista de seguidores si está configurada como privada.
 - **Auth**: Opcional / Requerida.
 - **Salida (200)**: Perfil público, ofertas y datos de seguimiento.
+- **Errores**:
+  - 404: Usuario no encontrado.
+
+### GET /api/v1/usuarios/{id}/seguidores
+- **Descripción**: Obtiene la lista de seguidores de un usuario (paginado). Oculta si el perfil es privado y no es el dueño.
+- **Auth**: Opcional / Requerida.
+- **Entrada (Query Params)**: `page` (int, default 1), `size` (int, default 10).
+- **Salida (200)**: Lista de usuarios (id, username, foto_perfil, lo_sigo).
+- **Errores**:
+  - 403: Lista privada.
+  - 404: Usuario no encontrado.
+
+### GET /api/v1/usuarios/{id}/seguidos
+- **Descripción**: Obtiene la lista de seguidos de un usuario (paginado).
+- **Auth**: Opcional / Requerida.
+- **Entrada (Query Params)**: `page` (int, default 1), `size` (int, default 10).
+- **Salida (200)**: Lista de usuarios (id, username, foto_perfil, lo_sigo).
 - **Errores**:
   - 404: Usuario no encontrado.
 
