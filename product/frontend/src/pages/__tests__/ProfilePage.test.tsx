@@ -51,10 +51,10 @@ describe('ProfilePage Component (HU-03)', () => {
     );
 
     await waitFor(() => {
-      const btn = screen.getByText('Seguir');
-      expect(btn).toBeInTheDocument();
-      fireEvent.click(btn);
+      expect(screen.getByText('Seguir')).toBeInTheDocument();
     });
+    
+    fireEvent.click(screen.getByText('Seguir'));
     await waitFor(() => expect(api.post).toHaveBeenCalledWith('/usuarios/2/seguir'));
   });
 });
