@@ -1,7 +1,6 @@
 import sys
 from pathlib import Path
 
-# Asegurar que el directorio raíz y el bot estén en el path
 root = Path(__file__).resolve().parent
 sys.path.append(str(root))
 sys.path.append(str(root / "bot"))
@@ -12,6 +11,7 @@ from app.api.health import router as health_router
 from app.api.auth import router as auth_router
 from app.api.ofertas import router as ofertas_router
 from app.api.mapa import router as mapa_router
+from app.api.social import router as social_router
 from app.db.session import engine, Base
 
 Base.metadata.create_all(bind=engine)
@@ -24,6 +24,7 @@ app.include_router(health_router, prefix="/api/v1")
 app.include_router(auth_router, prefix="/api/v1/auth")
 app.include_router(ofertas_router, prefix="/api/v1/ofertas")
 app.include_router(mapa_router, prefix="/api/v1")
+app.include_router(social_router, prefix="/api/v1/usuarios")
 
 if __name__ == "__main__":
     import uvicorn

@@ -31,6 +31,35 @@
 - **Auth**: Requerida (JWT).
 - **Salida (200)**: `{"message": "Sesión cerrada"}`
 
+## Gestión de Perfil y Social (HU-03)
+
+### GET /api/v1/usuarios/me
+- **Descripción**: Consulta los datos del perfil del usuario autenticado.
+- **Auth**: Requerida (JWT).
+- **Salida (200)**: Datos del perfil (sin contraseña ni su hash).
+- **Errores**:
+  - 401: No autenticado.
+
+### PUT /api/v1/usuarios/me
+- **Descripción**: Actualiza los datos del perfil del usuario autenticado (nombre, biografía, foto, privacidad de seguidores).
+- **Auth**: Requerida (JWT).
+- **Entrada (Multipart Form Data / Form)**:
+  - `nombre` (string, opcional)
+  - `biografia` (string, opcional, sanitizada a texto plano)
+  - `seguidores_privados` (boolean, opcional)
+  - `foto` (UploadFile, opcional)
+- **Salida (200)**: Datos actualizados del perfil.
+- **Errores**:
+  - 401: No autenticado.
+  - 422: Error de validación o formato de imagen inválido.
+
+### GET /api/v1/usuarios/{id}
+- **Descripción**: Obtiene el perfil público de un usuario y sus ofertas publicadas. Oculta lista de seguidores si está configurada como privada.
+- **Auth**: Opcional / Requerida.
+- **Salida (200)**: Perfil público y ofertas.
+- **Errores**:
+  - 404: Usuario no encontrado.
+
 ## Ofertas Comunitarias (HU-05, HU-09, HU-12)
 
 ### POST /api/v1/ofertas
@@ -66,7 +95,7 @@
 ## Archivos Estáticos (Imágenes)
 
 ### GET /api/v1/uploads/{filename}
-- **Descripción**: Sirve la imagen subida de la oferta.
+- **Descripción**: Sirve la imagen subida de la oferta o perfil.
 - **Auth**: Ninguna.
 - **Salida (200)**: Archivo de imagen.
 
