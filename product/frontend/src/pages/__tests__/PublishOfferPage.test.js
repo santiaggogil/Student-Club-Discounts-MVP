@@ -5,18 +5,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { PublishOfferPage } from '../PublishOfferPage';
 import api from '../../services/api';
-vi.mock('../../services/api', () => {
-    {
-        {
-            get: vi.fn(),
-                post;
-            vi.fn(),
-                put;
-            vi.fn(),
-            ;
-        }
-    }
-});
+vi.mock('../../services/api', () => ({
+    default: {
+        get: vi.fn(),
+        post: vi.fn(),
+        put: vi.fn(),
+    },
+}));
 describe('PublishOfferPage Component - Modo Edición', () => {
     beforeEach(() => {
         vi.clearAllMocks();

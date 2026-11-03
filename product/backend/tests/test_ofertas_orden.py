@@ -1,12 +1,14 @@
+import pytest
+from datetime import datetime, timedelta, timezone
 from fastapi.testclient import TestClient
-from main import app
-from app.db.session import get_db, Base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+from main import app
+from app.db.session import Base, get_db
 from app.social.models import User
-from app.services.auth import get_password_hash
-from datetime import datetime, timedelta
-import pytest
+from app.ofertas.models import OfertaComunitaria, Calificacion
+from app.services.auth import get_password_hash, create_access_token
 
 @pytest.fixture
 def db_session(tmp_path):
@@ -21,54 +23,76 @@ def db_session(tmp_path):
     app.dependency_overrides.clear()
 
 @pytest.fixture
-def client_orden(db_session):
+def client(db_session):
     return TestClient(app)
 
-def test_ac_047_orden_relevancia(client_orden, db_session):
-    u1 = User(username="u1", email="u1@test.com", hashed_password=get_password_hash("Password123"))
-    u2 = User(username="u2", email="u2@test.com", hashed_password=get_password_hash("Password123"))
-    u3 = User(username="u3", email="u3@test.com", hashed_password=get_password_hash("Password123"))
-    db_session.add_all([u1, u2, u3])
+def test_ordenamiento_recientes_vs_relevancia_y_con_busqueda(client, db_session):
+    # Crear usuario autor y calificador
+    autor = User(username="autor", email="autor@test.com", hashed_password=get_password_hash("Password123"))
+    calificador = User(username="evaluador", email="evaluador@test.com", hashed_password=get_password_hash("Password123"))
+    db_session.add_all([autor, calificador])
     db_session.commit()
-    
-    t1 = client_orden.post("/api/v1/auth/login", json={"identifier": "u1", "password": "Password123"}).json()["access_token"]
-    t2 = client_orden.post("/api/v1/auth/login", json={"identifier": "u2", "password": "Password123"}).json()["access_token"]
-    t3 = client_orden.post("/api/v1/auth/login", json={"identifier": "u3", "password": "Password123"}).json()["access_token"]
-    
-    vigencia = (datetime.now() + timedelta(days=1)).isoformat()
-    
-    # Oferta 1
-    o1 = client_orden.post("/api/v1/ofertas", headers={"Authorization": f"Bearer {t1}"}, data={"titulo": "Baja", "precio": 100, "ubicacion": "A", "vigencia": vigencia, "descripcion": "D"}, files={"foto": ("t.jpg", b"f", "image/jpeg")}).json()["id"]
-    # Oferta 2
-    o2 = client_orden.post("/api/v1/ofertas", headers={"Authorization": f"Bearer {t2}"}, data={"titulo": "Alta", "precio": 100, "ubicacion": "A", "vigencia": vigencia, "descripcion": "D"}, files={"foto": ("t.jpg", b"f", "image/jpeg")}).json()["id"]
-    
-    # Calificar o1 con 2 estrellas por u3
-    client_orden.post(f"/api/v1/ofertas/{o1}/calificar", headers={"Authorization": f"Bearer {t3}"}, json={"puntuacion": 2})
-    # Calificar o2 con 5 estrellas por u3
-    client_orden.post(f"/api/v1/ofertas/{o2}/calificar", headers={"Authorization": f"Bearer {t3}"}, json={"puntuacion": 5})
-    
-    resp = client_orden.get("/api/v1/ofertas?orden=relevancia")
-    assert resp.status_code == 200
-    items = resp.json()
-    assert items[0]["id"] == o2
-    assert items[1]["id"] == o1
 
-def test_ac_049_orden_recientes(client_orden, db_session):
-    u1 = User(username="u1_rec", email="u1r@test.com", hashed_password=get_password_hash("Password123"))
-    u2 = User(username="u2_rec", email="u2r@test.com", hashed_password=get_password_hash("Password123"))
-    db_session.add_all([u1, u2])
+    futuro = datetime.now(timezone.utc) + timedelta(days=5)
+
+    # Crear 3 ofertas con distintas calificaciones
+    # Oferta 1 (ID menor, mas antigua): Promo Especial Arroz (Calificacion 2.0)
+    o1 = OfertaComunitaria(titulo="Promo Especial Arroz", precio=10.0, ubicacion="Centro", vigencia=futuro, descripcion="Arroz economico", autor_id=autor.id)
+    # Oferta 2 (ID medio): Promo Especial Combo (Calificacion 5.0)
+    o2 = OfertaComunitaria(titulo="Promo Especial Combo", precio=20.0, ubicacion="Cable", vigencia=futuro, descripcion="Hamburguesa y papas", autor_id=autor.id)
+    # Oferta 3 (ID mayor, mas reciente): Promo Especial Tacos (Calificacion 3.0)
+    o3 = OfertaComunitaria(titulo="Promo Especial Tacos", precio=15.0, ubicacion="Palermo", vigencia=futuro, descripcion="Tacos al pastor", autor_id=autor.id)
+    
+    db_session.add_all([o1, o2, o3])
     db_session.commit()
-    
-    t1 = client_orden.post("/api/v1/auth/login", json={"identifier": "u1_rec", "password": "Password123"}).json()["access_token"]
-    t2 = client_orden.post("/api/v1/auth/login", json={"identifier": "u2_rec", "password": "Password123"}).json()["access_token"]
-    
-    vigencia = (datetime.now() + timedelta(days=1)).isoformat()
-    
-    o1 = client_orden.post("/api/v1/ofertas", headers={"Authorization": f"Bearer {t1}"}, data={"titulo": "Primera", "precio": 100, "ubicacion": "A", "vigencia": vigencia, "descripcion": "D"}, files={"foto": ("t.jpg", b"f", "image/jpeg")}).json()["id"]
-    o2 = client_orden.post("/api/v1/ofertas", headers={"Authorization": f"Bearer {t2}"}, data={"titulo": "Segunda", "precio": 100, "ubicacion": "A", "vigencia": vigencia, "descripcion": "D"}, files={"foto": ("t.jpg", b"f", "image/jpeg")}).json()["id"]
-    
-    resp = client_orden.get("/api/v1/ofertas?orden=recientes")
-    assert resp.status_code == 200
-    items = resp.json()
-    assert items[0]["id"] == o2
-    assert items[1]["id"] == o1
+
+    # Calificar ofertas
+    c1 = Calificacion(oferta_id=o1.id, usuario_id=calificador.id, puntuacion=2)
+    c2 = Calificacion(oferta_id=o2.id, usuario_id=calificador.id, puntuacion=5)
+    c3 = Calificacion(oferta_id=o3.id, usuario_id=calificador.id, puntuacion=3)
+    db_session.add_all([c1, c2, c3])
+    db_session.commit()
+
+    # 1. Probar orden=recientes (ID desc: o3, o2, o1)
+    res_recientes = client.get("/api/v1/ofertas?orden=recientes")
+    assert res_recientes.status_code == 200
+    ids_recientes = [o["id"] for o in res_recientes.json()]
+    assert ids_recientes == [o3.id, o2.id, o1.id]
+
+    # 2. Probar orden=relevancia (promedio desc: o2 [5.0], o3 [3.0], o1 [2.0])
+    res_relevancia = client.get("/api/v1/ofertas?orden=relevancia")
+    assert res_relevancia.status_code == 200
+    ids_relevancia = [o["id"] for o in res_relevancia.json()]
+    assert ids_relevancia == [o2.id, o3.id, o1.id]
+    assert ids_recientes != ids_relevancia
+
+    # 3. Combinado con filtro q='Especial'
+    res_q_recientes = client.get("/api/v1/ofertas?q=Especial&orden=recientes")
+    assert res_q_recientes.status_code == 200
+    ids_q_recientes = [o["id"] for o in res_q_recientes.json()]
+    assert ids_q_recientes == [o3.id, o2.id, o1.id]
+
+    res_q_relevancia = client.get("/api/v1/ofertas?q=Especial&orden=relevancia")
+    assert res_q_relevancia.status_code == 200
+    ids_q_relevancia = [o["id"] for o in res_q_relevancia.json()]
+    assert ids_q_relevancia == [o2.id, o3.id, o1.id]
+    assert ids_q_recientes != ids_q_relevancia
+
+def test_filtro_vencidas_y_paginacion(client, db_session):
+    autor = User(username="autor2", email="autor2@test.com", hashed_password=get_password_hash("Password123"))
+    db_session.add(autor)
+    db_session.commit()
+
+    pasado = datetime.now(timezone.utc) - timedelta(days=1)
+    futuro = datetime.now(timezone.utc) + timedelta(days=1)
+
+    o_vencida = OfertaComunitaria(titulo="Expirada", precio=5.0, ubicacion="Centro", vigencia=pasado, descripcion="Vencida", autor_id=autor.id)
+    o_vigente = OfertaComunitaria(titulo="Vigente", precio=10.0, ubicacion="Centro", vigencia=futuro, descripcion="Activa", autor_id=autor.id)
+    db_session.add_all([o_vencida, o_vigente])
+    db_session.commit()
+
+    res = client.get("/api/v1/ofertas")
+    assert res.status_code == 200
+    ids = [o["id"] for o in res.json()]
+    assert o_vigente.id in ids
+    assert o_vencida.id not in ids

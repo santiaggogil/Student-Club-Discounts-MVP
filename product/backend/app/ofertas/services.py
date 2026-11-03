@@ -1,4 +1,5 @@
 import os, uuid, unicodedata
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, func
 from fastapi import UploadFile, HTTPException
@@ -13,12 +14,21 @@ class OfertaService:
 
     @staticmethod
     def obtener_feed(db: Session, page: int, size: int, orden: str, q: str | None, user_id: int | None) -> list[OfertaResponse]:
-        query = db.query(OfertaComunitaria)
+        now = datetime.now(timezone.utc)
+        query = db.query(OfertaComunitaria).filter(OfertaComunitaria.vigencia > now)
         if q:
             norm_q = OfertaService._normalizar(q)
             query = query.filter(or_(func.lower(OfertaComunitaria.titulo).contains(norm_q), func.lower(OfertaComunitaria.descripcion).contains(norm_q), func.lower(OfertaComunitaria.ubicacion).contains(norm_q)))
         ofertas = query.all()
-        return [OfertaService._formatear_oferta(db, o, user_id) for o in ofertas]
+        formatted = [OfertaService._formatear_oferta(db, o, user_id) for o in ofertas]
+        
+        if orden == "recientes":
+            formatted.sort(key=lambda o: o.id, reverse=True)
+        else:
+            formatted.sort(key=lambda o: (o.promedio_calificacion, o.total_calificaciones, o.id), reverse=True)
+            
+        offset = (page - 1) * size
+        return formatted[offset:offset + size]
 
     @staticmethod
     def _formatear_oferta(db: Session, oferta: OfertaComunitaria, user_id: int | None) -> OfertaResponse:
