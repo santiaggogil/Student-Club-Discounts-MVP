@@ -8,6 +8,13 @@ class OfertaCreate(BaseModel):
     vigencia: datetime = Field(..., description="Fecha y hora de vigencia")
     descripcion: str = Field(..., min_length=1, description="Descripción breve obligatoria")
 
+    @field_validator('vigencia')
+    @classmethod
+    def validate_vigencia(cls, v):
+        if v < datetime.now():
+            raise ValueError("La vigencia no puede ser una fecha pasada")
+        return v
+
 class OfertaResponse(BaseModel):
     id: int
     titulo: str
@@ -20,6 +27,8 @@ class OfertaResponse(BaseModel):
     autor_username: str | None = None
     promedio_calificacion: float = 0.0
     total_calificaciones: int = 0
+    vigente: bool
+    vence_en: str
 
     class Config:
         from_attributes = True

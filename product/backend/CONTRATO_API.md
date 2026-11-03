@@ -79,17 +79,19 @@
   - 401: No autenticado.
   - 404: Usuario no encontrado.
 
-## Ofertas Comunitarias (HU-05, HU-08, HU-09, HU-12)
+## Ofertas Comunitarias (HU-05, HU-06, HU-08, HU-09, HU-12)
 
 ### POST /api/v1/ofertas
-- **Descripción**: Publica una nueva oferta comunitaria.
+- **Descripción**: Publica una nueva oferta comunitaria. Rechaza vigencias pasadas.
 - **Auth**: Requerida (JWT).
 - **Entrada (Multipart Form Data)**:
-  - `foto`, `precio`, `ubicacion`, `vigencia`, `titulo`, `descripcion`
+  - `foto`, `precio`, `ubicacion`, `vigencia` (ISO), `titulo`, `descripcion`
 - **Salida (201)**: `{"id": 1, ..., "autor_username": "cazador"}`
+- **Errores**:
+  - 422: Vigencia pasada o formato inválido.
 
 ### PUT /api/v1/ofertas/{id}
-- **Descripción**: Edita una oferta propia. (HU-08)
+- **Descripción**: Edita una oferta propia. Rechaza vigencias pasadas. (HU-08)
 - **Auth**: Requerida (JWT).
 - **Entrada (Multipart Form Data)**:
   - `foto` (opcional), `precio`, `ubicacion`, `vigencia`, `titulo`, `descripcion`
@@ -97,6 +99,7 @@
 - **Errores**:
   - 403: No es el autor.
   - 404: No encontrada.
+  - 422: Vigencia pasada.
 
 ### DELETE /api/v1/ofertas/{id}
 - **Descripción**: Elimina una oferta propia. (HU-08)
@@ -107,7 +110,7 @@
   - 404: No encontrada.
 
 ### GET /api/v1/ofertas
-- **Descripción**: Obtiene el feed de ofertas comunitarias vigentes (paginado) incluyendo la URL codificada de imagen bajo /api/v1/uploads/, el nombre del autor, promedio de calificación y total de calificaciones. Soporta parámetro de ordenamiento (HU-12).
+- **Descripción**: Obtiene el feed de ofertas comunitarias vigentes (paginado). Excluye vencidas. Incluye `vigente` (bool) y `vence_en` (ISO).
 - **Auth**: Ninguna.
 - **Entrada (Query Params)**:
   - `page` (int, opcional, default 1)
@@ -139,9 +142,9 @@
 ## Mapa de Ofertas (HU-20)
 
 ### GET /api/v1/mapa/ofertas
-- **Descripción**: Obtiene las sedes de tiendas de cadena en Manizales con coordenadas y sus ofertas vigentes recopiladas por el bot. Sedes sin coordenadas se omiten. Si no hay datos, retorna lista vacía [].
+- **Descripción**: Obtiene las sedes de tiendas de cadena en Manizales con coordenadas y sus ofertas vigentes recopiladas por el bot.
 - **Auth**: Ninguna.
-- **Salida (200)**: `[{"cadena": "Éxito", "nombre": "Éxito Cable Plaza", "latitud": 5.05, "longitud": -75.48, "ofertas": [{"producto": "Arroz 1kg", "precio": 3500.0, "vigencia": "2025-01-01T00:00:00"}]}]`
+- **Salida (200)**: `[{"cadena": "Éxito", "nombre": "Éxito Cable Plaza", "latitud": 5.05, "longitud": -75.48, "ofertas": [...]}]`
 
 ### GET /api/v1/ofertas/mapa
 - **Descripción**: Obtiene las ofertas de supermercados y sedes para el mapa interactivo.

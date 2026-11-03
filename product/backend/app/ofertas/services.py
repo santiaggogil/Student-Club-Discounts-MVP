@@ -5,6 +5,7 @@ from pathlib import Path
 from urllib.parse import quote
 from fastapi import UploadFile, HTTPException, status
 from sqlalchemy.orm import Session
+from datetime import datetime
 from app.ofertas.schemas import OfertaCreate, OfertaResponse
 from app.ofertas.repository import OfertaRepository
 from app.ofertas.models import OfertaComunitaria
@@ -73,10 +74,22 @@ class OfertaService:
     def _formatear_oferta(db: Session, oferta: OfertaComunitaria) -> OfertaResponse:
         promedio = OfertaRepository.calcular_promedio(db, oferta.id)
         total = len(oferta.calificaciones) if oferta.calificaciones else 0
-        resp = OfertaResponse.model_validate(oferta)
-        resp.autor_username = oferta.autor.username if oferta.autor else None
-        resp.promedio_calificacion = promedio
-        resp.total_calificaciones = total
+        now = datetime.now()
+        resp = OfertaResponse(
+            id=oferta.id,
+            titulo=oferta.titulo,
+            precio=oferta.precio,
+            ubicacion=oferta.ubicacion,
+            vigencia=oferta.vigencia,
+            descripcion=oferta.descripcion,
+            imagen=oferta.imagen,
+            autor_id=oferta.autor_id,
+            autor_username=oferta.autor.username if oferta.autor else None,
+            promedio_calificacion=promedio,
+            total_calificaciones=total,
+            vigente=oferta.vigencia > now,
+            vence_en=oferta.vigencia.isoformat()
+        )
         return resp
 
     @staticmethod
