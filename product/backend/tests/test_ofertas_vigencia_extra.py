@@ -39,7 +39,7 @@ def test_publicar_vigencia_con_z(tmp_path):
                 "descripcion": "Prueba vigencia Z"
             },
             files={"foto": ("test.jpg", f, "image/jpeg")}
-        }
+        )
     assert response.status_code == 201
     data = response.json()
     assert data["titulo"] == "Oferta Z"
@@ -61,7 +61,7 @@ def test_publicar_vigencia_con_offset(tmp_path):
                 "descripcion": "Prueba vigencia offset"
             },
             files={"foto": ("test.jpg", f, "image/jpeg")}
-        }
+        )
     assert response.status_code == 201
 
 def test_publicar_vigencia_sin_zona(tmp_path):
@@ -81,7 +81,7 @@ def test_publicar_vigencia_sin_zona(tmp_path):
                 "descripcion": "Prueba vigencia sin zona"
             },
             files={"foto": ("test.jpg", f, "image/jpeg")}
-        }
+        )
     assert response.status_code == 201
 
 def test_publicar_vigencia_invalida_422(tmp_path):
@@ -101,5 +101,5 @@ def test_publicar_vigencia_invalida_422(tmp_path):
                 "descripcion": "Prueba fecha invalida"
             },
             files={"foto": ("test.jpg", f, "image/jpeg")}
-        }
+        )
     assert response.status_code == 422
