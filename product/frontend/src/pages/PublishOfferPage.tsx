@@ -5,14 +5,13 @@ import api from '../services/api';
 import { FormInput } from '../components/FormInput';
 import { LoadingState, ErrorState } from '../components/StatusStates';
 
+const getMinDate = () => new Date().toISOString().slice(0, 16);
+
 const publishSchema = z.object({
   titulo: z.string().min(3, 'Título requerido'),
   precio: z.string().min(1, 'Precio requerido'),
   ubicacion: z.string().min(3, 'Ubicación requerida'),
-  vigencia: z.string().min(1, 'Vigencia requerida').refine(val => {
-    const date = new Date(val);
-    return !isNaN(date.getTime()) && date > new Date();
-  }, 'La fecha de vigencia debe ser futura'),
+  vigencia: z.string().min(1, 'Vigencia requerida').refine(val => new Date(val) > new Date(), 'La fecha no puede ser pasada'),
   descripcion: z.string().min(10, 'Descripción muy corta'),
   foto: z.instanceof(File).refine(f => ['image/jpeg', 'image/png'].includes(f.type), 'Formato no permitido')
 });
@@ -21,10 +20,7 @@ const editSchema = z.object({
   titulo: z.string().min(3, 'Título requerido'),
   precio: z.string().min(1, 'Precio requerido'),
   ubicacion: z.string().min(3, 'Ubicación requerida'),
-  vigencia: z.string().min(1, 'Vigencia requerida').refine(val => {
-    const date = new Date(val);
-    return !isNaN(date.getTime()) && date > new Date();
-  }, 'La fecha de vigencia debe ser futura'),
+  vigencia: z.string().min(1, 'Vigencia requerida').refine(val => new Date(val) > new Date(), 'La fecha no puede ser pasada'),
   descripcion: z.string().min(10, 'Descripción muy corta'),
   foto: z.instanceof(File).optional().nullable().refine(f => !f || ['image/jpeg', 'image/png'].includes(f.type), 'Formato no permitido')
 });
@@ -150,7 +146,7 @@ export const PublishOfferPage: React.FC = () => {
           <FormInput label="Ubicación" name="ubicacion" value={formData.ubicacion} onChange={e => setFormData({...formData, ubicacion: e.target.value})} error={errors.ubicacion} placeholder="Ej. Centro, Universidades" />
           <div className="form-group">
             <label htmlFor="vigencia" className="form-label">Vigencia</label>
-            <input id="vigencia" type="datetime-local" value={formData.vigencia} onChange={e => setFormData({...formData, vigencia: e.target.value})} className={`form-control ${errors.vigencia ? 'is-invalid' : ''}`} />
+            <input id="vigencia" type="datetime-local" min={getMinDate()} value={formData.vigencia} onChange={e => setFormData({...formData, vigencia: e.target.value})} className={`form-control ${errors.vigencia ? 'is-invalid' : ''}`} />
             {errors.vigencia && <span className="form-error" role="alert">{errors.vigencia}</span>}
           </div>
         </>

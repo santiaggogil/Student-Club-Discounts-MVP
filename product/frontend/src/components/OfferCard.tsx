@@ -18,6 +18,8 @@ interface OfferCardProps {
     calificacion: number;
     total_calificaciones: number;
     es_propia?: boolean;
+    vigente?: boolean;
+    vence_en?: string;
     onDelete?: (id: number) => void;
   };
 }
@@ -32,6 +34,17 @@ export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
   const autorNombre = offer.autor_username || offer.autor || 'Anónimo';
   const autorId = offer.autor_id;
   const imageUrl = offer.imagen || offer.foto || '';
+
+  const getVigenciaLabel = () => {
+    if (offer.vigente === false) return <span style={{ color: '#6c757d', fontWeight: 'bold' }}>Vencida</span>;
+    if (!offer.vence_en) return null;
+    const diff = new Date(offer.vence_en).getTime() - new Date().getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(hours / 24);
+    if (hours < 24 && hours >= 0) return <span>Vence hoy a las {new Date(offer.vence_en).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>;
+    if (days > 0) return <span>Vence en {days} {days === 1 ? 'día' : 'días'}</span>;
+    return <span>Vencida</span>;
+  };
 
   let currentUser: any = null;
   try {
@@ -140,6 +153,7 @@ export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
         <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--primary-blue, #0056b3)' }}>
           ${Number(offer.precio).toLocaleString()}
         </span>
+        <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{getVigenciaLabel()}</div>
       </div>
 
       <p style={{ fontSize: '0.9rem', color: 'var(--text-color)', marginBottom: '0.75rem' }}>{offer.descripcion}</p>
