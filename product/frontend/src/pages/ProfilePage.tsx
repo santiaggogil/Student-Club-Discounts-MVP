@@ -16,13 +16,15 @@ export const ProfilePage: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
   const isPublic = !!id;
+  const isAuthenticated = !!localStorage.getItem('token');
 
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
 
-  // Estado del formulario de edición (solo para perfil propio)
   const [formData, setFormData] = useState({
     nombre: '',
     biografia: '',
@@ -39,6 +41,8 @@ export const ProfilePage: React.FC = () => {
       const endpoint = isPublic ? `/usuarios/${id}` : '/usuarios/me';
       const res = await api.get(endpoint);
       setProfile(res.data);
+      setIsFollowing(res.data.lo_sigo || false);
+      setFollowersCount(res.data.seguidores_count || 0);
       if (!isPublic) {
         setFormData({
           nombre: res.data.nombre || '',
@@ -61,6 +65,22 @@ export const ProfilePage: React.FC = () => {
   useEffect(() => {
     fetchProfile();
   }, [id]);
+
+  const toggleFollow = async () => {
+    try {
+      if (isFollowing) {
+        await api.delete(`/usuarios/${id}/seguir`);
+        setIsFollowing(false);
+        setFollowersCount(prev => Math.max(0, prev - 1));
+      } else {
+        await api.post(`/usuarios/${id}/seguir`);
+        setIsFollowing(true);
+        setFollowersCount(prev => prev + 1);
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Error al actualizar seguimiento');
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
@@ -115,7 +135,6 @@ export const ProfilePage: React.FC = () => {
 
   return (
     <div className="profile-container" style={{ maxWidth: '800px', margin: '0 auto', paddingBottom: '3rem' }}>
-      {/* Cabecera del Perfil */}
       <div style={{ background: '#fff', borderRadius: '12px', padding: '2rem', border: '1px solid var(--border-color, #e0e0e0)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
         <div style={{ width: '90px', height: '90px', borderRadius: '50%', background: '#e2e8f0', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: 'bold', color: '#64748b' }}>
           {profile.foto || profile.foto_url ? (
@@ -132,9 +151,14 @@ export const ProfilePage: React.FC = () => {
           <p style={{ fontSize: '0.95rem', color: 'var(--text-color)', marginBottom: '0.75rem' }}>
             {profile.biografia || 'Sin biografía'}
           </p>
-          <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.9rem', fontWeight: 600 }}>
-            <span>Seguidores: {profile.seguidores_count ?? profile.seguidores?.length ?? 0}</span>
+          <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.9rem', fontWeight: 600, alignItems: 'center' }}>
+            <span>Seguidores: {followersCount}</span>
             <span>Seguidos: {profile.seguidos_count ?? profile.seguidos?.length ?? 0}</span>
+            {isPublic && isAuthenticated && profile.id !== parseInt(id || '0') && (
+              <button onClick={toggleFollow} className={isFollowing ? 'btn-secondary-outline' : 'btn-primary'} style={{ padding: '0.25rem 0.75rem', fontSize: '0.8rem' }}>
+                {isFollowing ? 'Dejar de seguir' : 'Seguir'}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -142,68 +166,31 @@ export const ProfilePage: React.FC = () => {
       {error && <div style={{ color: '#dc3545', background: '#f8d7da', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem' }} role="alert">{error}</div>}
       {successMsg && <div style={{ color: '#155724', background: '#d4edda', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem' }}>{successMsg}</div>}
 
-      {/* Formulario de Edición (Solo si es perfil propio /me) */}
       {!isPublic && (
         <div style={{ background: '#fff', borderRadius: '12px', padding: '2rem', border: '1px solid var(--border-color, #e0e0e0)', marginBottom: '2rem' }}>
           <h3 style={{ marginBottom: '1.25rem', fontSize: '1.2rem' }}>Editar Mi Perfil</h3>
           <form onSubmit={handleUpdate} noValidate>
-            <FormInput
-              label="Nombre o Apodo"
-              name="nombre"
-              value={formData.nombre}
-              onChange={e => setFormData({ ...formData, nombre: e.target.value })}
-              error={errors.nombre}
-              placeholder="Tu nombre real o apodo"
-            />
+            <FormInput label="Nombre o Apodo" name="nombre" value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} error={errors.nombre} placeholder="Tu nombre real o apodo" />
             <div className="form-group" style={{ marginBottom: '1rem' }}>
               <label htmlFor="biografia" className="form-label">Biografía (texto plano)</label>
-              <textarea
-                id="biografia"
-                value={formData.biografia}
-                onChange={e => setFormData({ ...formData, biografia: e.target.value })}
-                className="form-control"
-                rows={3}
-                placeholder="Cuéntanos sobre ti..."
-              />
+              <textarea id="biografia" value={formData.biografia} onChange={e => setFormData({...formData, biografia: e.target.value})} className="form-control" rows={3} placeholder="Cuéntanos sobre ti..." />
               {errors.biografia && <span className="form-error" role="alert">{errors.biografia}</span>}
             </div>
-
             <div className="form-group" style={{ marginBottom: '1rem' }}>
               <label htmlFor="foto" className="form-label">Foto de perfil</label>
-              <input
-                id="foto"
-                type="file"
-                accept="image/jpeg,image/png"
-                onChange={handleFileChange}
-                className="form-control"
-              />
+              <input id="foto" type="file" accept="image/jpeg,image/png" onChange={handleFileChange} className="form-control" />
             </div>
-
             <div className="form-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
-              <input
-                type="checkbox"
-                id="seguidores_privados"
-                checked={formData.seguidores_privados}
-                onChange={e => setFormData({ ...formData, seguidores_privados: e.target.checked })}
-                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-              />
-              <label htmlFor="seguidores_privados" className="form-label" style={{ cursor: 'pointer', marginBottom: 0 }}>
-                Hacer mi lista de seguidores privada
-              </label>
+              <input type="checkbox" id="seguidores_privados" checked={formData.seguidores_privados} onChange={e => setFormData({...formData, seguidores_privados: e.target.checked})} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+              <label htmlFor="seguidores_privados" className="form-label" style={{ cursor: 'pointer', marginBottom: 0 }}>Hacer mi lista de seguidores privada</label>
             </div>
-
-            <button type="submit" className="btn-primary" disabled={updating}>
-              {updating ? 'Guardando...' : 'Guardar Cambios'}
-            </button>
+            <button type="submit" className="btn-primary" disabled={updating}>{updating ? 'Guardando...' : 'Guardar Cambios'}</button>
           </form>
         </div>
       )}
 
-      {/* Lista de Ofertas Publicadas */}
       <div style={{ marginTop: '2rem' }}>
-        <h3 style={{ marginBottom: '1rem', fontSize: '1.2rem' }}>
-          {isPublic ? `Ofertas publicadas por @${profile.username}` : 'Mis Ofertas Publicadas'}
-        </h3>
+        <h3 style={{ marginBottom: '1rem', fontSize: '1.2rem' }}>{isPublic ? `Ofertas publicadas por @${profile.username}` : 'Mis Ofertas Publicadas'}</h3>
         {(!profile.ofertas || profile.ofertas.length === 0) ? (
           <EmptyState title="Sin ofertas" message="Este usuario aún no ha publicado ofertas comunitarias." />
         ) : (
