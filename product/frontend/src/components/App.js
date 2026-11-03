@@ -14,7 +14,7 @@ class ErrorBoundary extends React.Component {
     static getDerivedStateFromError() { return { hasError: true }; }
     render() {
         if (this.state.hasError)
-            return _jsxs("div", { style: { padding: '2rem', textAlign: 'center' }, children: [_jsx("h1", { children: "Algo salió mal." }), _jsx("button", { onClick: () => window.location.reload(), children: "Recargar" })] });
+            return _jsxs("div", { style: { padding: '2rem', textAlign: 'center' }, children: [_jsx("h1", { children: "Algo sali\u00F3 mal." }), _jsx("button", { onClick: () => window.location.reload(), children: "Recargar" })] });
         return this.props.children;
     }
 }

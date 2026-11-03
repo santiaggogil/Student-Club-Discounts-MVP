@@ -26,7 +26,7 @@ describe('ProfilePage Component (HU-03)', () => {
         biografia: 'Amante de los descuentos',
         seguidores_privados: false,
         ofertas: [
-          { id: 10, titulo: 'Oferta 1', precio: 5000, ubicacion: 'Centro', descripcion: 'Desc', calificacion: 4.0, total_calificaciones: 2, es_propia: true }
+          { id: 10, autor_id: 1, titulo: 'Oferta 1', precio: 5000, ubicacion: 'Centro', descripcion: 'Desc', calificacion: 4.0, total_calificaciones: 2, es_propia: true }
         ]
       }
     });
