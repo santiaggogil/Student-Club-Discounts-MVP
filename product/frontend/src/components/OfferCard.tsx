@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { RatingStars } from './RatingStars';
+import api from '../services/api';
 
 interface OfferCardProps {
-  offer: { id: number; autor_id?: number; titulo: string; descripcion: string; ubicacion: string; precio: number; imagen?: string; foto?: string; autor_username?: string; autor?: string; calificacion: number; total_calificaciones: number; es_propia: boolean };
+  offer: { id: number; autor_id?: number; titulo: string; descripcion: string; ubicacion: string; precio: number; imagen?: string; foto?: string; autor_username?: string; autor?: string; calificacion: number; total_calificaciones: number; es_propia: boolean; onDelete?: (id: number) => void };
 }
 
 export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
   const [promedio, setPromedio] = useState(offer.calificacion || 0);
   const [total, setTotal] = useState(offer.total_calificaciones || 0);
   const [imgError, setImgError] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const navigate = useNavigate();
   const autorNombre = offer.autor_username || offer.autor || 'Anónimo';
   const autorId = offer.autor_id;
-
   const imageUrl = offer.imagen || offer.foto || '';
 
   const handleUpdateRating = (nuevoPromedio: number, nuevoTotal: number) => {
@@ -20,8 +22,31 @@ export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
     setTotal(nuevoTotal);
   };
 
+  const handleDelete = async () => {
+    if (window.confirm('¿Estás seguro de eliminar esta oferta?')) {
+      try {
+        await api.delete(`/ofertas/${offer.id}`);
+        if (offer.onDelete) offer.onDelete(offer.id);
+        else window.location.reload();
+      } catch (err) {
+        alert('Error al eliminar la oferta');
+      }
+    }
+  };
+
   return (
-    <div className="offer-card" style={{ background: 'var(--card-bg, #fff)', border: '1px solid var(--border-color, #e0e0e0)', borderRadius: '12px', padding: '1rem', marginBottom: '1.25rem', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+    <div className="offer-card" style={{ background: 'var(--card-bg, #fff)', border: '1px solid var(--border-color, #e0e0e0)', borderRadius: '12px', padding: '1rem', marginBottom: '1.25rem', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', position: 'relative' }}>
+      {offer.es_propia && (
+        <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
+          <button onClick={() => setShowMenu(!showMenu)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}>⋮</button>
+          {showMenu && (
+            <div style={{ position: 'absolute', right: 0, background: '#fff', border: '1px solid #ccc', borderRadius: '4px', padding: '0.5rem', zIndex: 10 }}>
+              <button onClick={() => navigate(`/ofertas/${offer.id}/editar`)} style={{ display: 'block', width: '100%', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer' }}>Editar</button>
+              <button onClick={handleDelete} style={{ display: 'block', width: '100%', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', color: 'red' }}>Eliminar</button>
+            </div>
+          )}
+        </div>
+      )}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.85rem' }}>
