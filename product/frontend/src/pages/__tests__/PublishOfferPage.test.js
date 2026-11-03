@@ -5,18 +5,23 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { PublishOfferPage } from '../PublishOfferPage';
 import api from '../../services/api';
-vi.mock('../../services/api', () => ({
-    default: {
-        get: vi.fn(),
-        post: vi.fn(),
-        put: vi.fn(),
-    },
-}));
+vi.mock('../../services/api', () => {
+    {
+        {
+            get: vi.fn(),
+                post;
+            vi.fn(),
+                put;
+            vi.fn(),
+            ;
+        }
+    }
+});
 describe('PublishOfferPage Component - Modo Edición', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
-    it('en modo edición precarga datos y al guardar llama a PUT con el id y NUNCA a POST', async () => {
+    it('en modo edición precarga datos y al guardar llama a PUT incluyendo los cinco campos obligatorios', async () => {
         const mockOffer = {
             id: 5,
             titulo: 'Oferta Original',
@@ -38,7 +43,15 @@ describe('PublishOfferPage Component - Modo Edición', () => {
         const submitBtn = screen.getByText('Guardar Cambios');
         fireEvent.click(submitBtn);
         await waitFor(() => {
-            expect(api.put).toHaveBeenCalledWith('/ofertas/5', expect.any(FormData), expect.any(Object));
+            expect(api.put).toHaveBeenCalled();
+            const callArgs = api.put.mock.calls[0];
+            expect(callArgs[0]).toBe('/ofertas/5');
+            const formData = callArgs[1];
+            expect(formData.get('titulo')).toBe('Oferta Modificada');
+            expect(formData.get('precio')).toBe('4000');
+            expect(formData.get('ubicacion')).toBe('Campus');
+            expect(formData.get('vigencia')).toBeTruthy();
+            expect(formData.get('descripcion')).toBe('Descripción original larga para pasar validación');
             expect(api.post).not.toHaveBeenCalled();
         });
     });

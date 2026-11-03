@@ -5,13 +5,13 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { PublishOfferPage } from '../PublishOfferPage';
 import api from '../../services/api';
 
-vi.mock('../../services/api', () => {{
+vi.mock('../../services/api', () => ({
   default: {
     get: vi.fn(),
     post: vi.fn(),
     put: vi.fn(),
   },
-}});
+}));
 
 describe('PublishOfferPage Component - Modo Edición', () => {
   beforeEach(() => {
