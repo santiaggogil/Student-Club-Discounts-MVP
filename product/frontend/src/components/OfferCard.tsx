@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { RatingStars } from './RatingStars';
 
 interface OfferCardProps {
-  offer: { id: number; titulo: string; descripcion: string; ubicacion: string; precio: number; imagen?: string; foto?: string; autor_username?: string; autor?: string; calificacion: number; total_calificaciones: number; es_propia: boolean };
+  offer: { id: number; autor_id?: number; titulo: string; descripcion: string; ubicacion: string; precio: number; imagen?: string; foto?: string; autor_username?: string; autor?: string; calificacion: number; total_calificaciones: number; es_propia: boolean };
 }
 
 export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
@@ -10,6 +11,7 @@ export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
   const [total, setTotal] = useState(offer.total_calificaciones || 0);
   const [imgError, setImgError] = useState(false);
   const autorNombre = offer.autor_username || offer.autor || 'Anónimo';
+  const autorId = offer.autor_id;
 
   const imageUrl = offer.imagen || offer.foto || '';
 
@@ -27,7 +29,16 @@ export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
           </div>
           <div>
             <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-color)' }}>{offer.titulo}</span>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{offer.ubicacion} • Autor: {autorNombre}</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              {offer.ubicacion} • Autor: {' '}
+              {autorId ? (
+                <Link to={`/perfil/${autorId}`} style={{ color: 'var(--primary-blue)', textDecoration: 'none', fontWeight: 600 }}>
+                  {autorNombre}
+                </Link>
+              ) : (
+                autorNombre
+              )}
+            </div>
           </div>
         </div>
       </div>

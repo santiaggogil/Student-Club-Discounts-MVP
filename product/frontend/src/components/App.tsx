@@ -6,6 +6,7 @@ import { LoginPage } from '../pages/LoginPage';
 import { PublishOfferPage } from '../pages/PublishOfferPage';
 import { FeedPage } from '../pages/FeedPage';
 import { MapPage } from '../pages/MapPage';
+import { ProfilePage } from '../pages/ProfilePage';
 import './tokens.css';
 
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean}> {
@@ -26,7 +27,9 @@ export const App: React.FC = () => (
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/publicar" element={<PublishOfferPage />} />
           <Route path="/mapa" element={<MapPage />} />
-          <Route path="/" element={<FeedPage />} />
+          <Route path="/perfil" element={<ProfilePage />} />
+          <Route path="/perfil/:id" element={<ProfilePage />} />
+          <Route path="/*" element={<FeedPage />} />
         </Routes>
       </Layout>
     </ErrorBoundary>

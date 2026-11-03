@@ -42,6 +42,7 @@ export const Header: React.FC = () => {
         {isAuthenticated ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <NavLink to="/publicar" className="btn-primary" style={{ textDecoration: 'none' }}>+ Publicar Oferta</NavLink>
+            <NavLink to="/perfil" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')} style={{ fontWeight: 600 }}>Perfil</NavLink>
             <button onClick={handleLogout} className="btn-secondary-outline" style={{ padding: '0.4rem 1rem', cursor: 'pointer' }}>Cerrar Sesión</button>
           </div>
         ) : (
