@@ -49,7 +49,7 @@ export const ProfilePage = () => {
             const res = await api.get(endpoint);
             setProfile(res.data);
             setIsFollowing(res.data.lo_sigo || false);
-            setFollowersCount(res.data.seguidores_count || 0);
+            setFollowersCount(res.data.seguidores_count ?? 0);
             if (!isPublic) {
                 setFormData({
                     nombre: res.data.nombre || '',
