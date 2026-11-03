@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { OfferCard } from '../OfferCard';
 
 describe('OfferCard Component - Image Error Handling', () => {
@@ -18,13 +19,21 @@ describe('OfferCard Component - Image Error Handling', () => {
   };
 
   it('renderiza la imagen exactamente con el valor de oferta.imagen sin modificar la ruta', () => {
-    render(<OfferCard offer={mockOffer} />);
+    render(
+      <MemoryRouter>
+        <OfferCard offer={mockOffer} />
+      </MemoryRouter>
+    );
     const img = screen.getByRole('img', { name: /Oferta Prueba/i });
     expect(img).toHaveAttribute('src', '/api/v1/uploads/test.jpeg');
   });
 
   it('maneja el error de imagen mostrando el recuadro CSS sin bucle infinito y sin repetir petición', () => {
-    render(<OfferCard offer={mockOffer} />);
+    render(
+      <MemoryRouter>
+        <OfferCard offer={mockOffer} />
+      </MemoryRouter>
+    );
     const img = screen.getByRole('img', { name: /Oferta Prueba/i });
     
     fireEvent.error(img);
