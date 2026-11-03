@@ -1,6 +1,5 @@
 from pydantic import BaseModel, Field, field_validator
 from datetime import datetime, timezone
-from zoneinfo import ZoneInfo
 
 class OfertaCreate(BaseModel):
     titulo: str = Field(..., min_length=1, description="Título obligatorio")
@@ -26,8 +25,7 @@ class OfertaCreate(BaseModel):
             raise ValueError("Formato de fecha de vigencia inválido")
         
         if dt.tzinfo is None:
-            bogota_tz = ZoneInfo("America/Bogota")
-            dt = dt.replace(tzinfo=bogota_tz)
+            dt = dt.replace(tzinfo=timezone.utc)
         
         return dt.astimezone(timezone.utc)
 
