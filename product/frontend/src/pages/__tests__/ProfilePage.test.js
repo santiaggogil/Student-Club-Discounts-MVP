@@ -32,10 +32,9 @@ describe('ProfilePage Component (HU-03)', () => {
         api.post.mockResolvedValueOnce({ data: {} });
         render(_jsx(MemoryRouter, { initialEntries: ['/perfil/2'], children: _jsx(Routes, { children: _jsx(Route, { path: "/perfil/:id", element: _jsx(ProfilePage, {}) }) }) }));
         await waitFor(() => {
-            const btn = screen.getByText('Seguir');
-            expect(btn).toBeInTheDocument();
-            fireEvent.click(btn);
+            expect(screen.getByText('Seguir')).toBeInTheDocument();
         });
+        fireEvent.click(screen.getByText('Seguir'));
         await waitFor(() => expect(api.post).toHaveBeenCalledWith('/usuarios/2/seguir'));
     });
 });

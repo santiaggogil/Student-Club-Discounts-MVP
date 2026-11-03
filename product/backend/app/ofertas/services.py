@@ -46,7 +46,31 @@ class OfertaService:
     def publicar_oferta(db: Session, data: OfertaCreate, file: UploadFile, autor_id: int) -> OfertaResponse:
         imagen_url = OfertaService.procesar_y_guardar_imagen(file)
         oferta = OfertaRepository.crear(db, data, imagen_url, autor_id)
-        oferta = OfertaRepository.obtener_por_id(db, oferta.id)
+        return OfertaService._formatear_oferta(db, oferta)
+
+    @staticmethod
+    def editar_oferta(db: Session, oferta_id: int, data: OfertaCreate, file: UploadFile | None, autor_id: int) -> OfertaResponse:
+        oferta = OfertaRepository.obtener_por_id(db, oferta_id)
+        if not oferta:
+            raise HTTPException(status_code=404, detail="Oferta no encontrada")
+        if oferta.autor_id != autor_id:
+            raise HTTPException(status_code=403, detail="No tienes permiso para editar esta oferta")
+        
+        imagen_url = OfertaService.procesar_y_guardar_imagen(file) if file else None
+        oferta = OfertaRepository.actualizar(db, oferta, data, imagen_url)
+        return OfertaService._formatear_oferta(db, oferta)
+
+    @staticmethod
+    def eliminar_oferta(db: Session, oferta_id: int, autor_id: int):
+        oferta = OfertaRepository.obtener_por_id(db, oferta_id)
+        if not oferta:
+            raise HTTPException(status_code=404, detail="Oferta no encontrada")
+        if oferta.autor_id != autor_id:
+            raise HTTPException(status_code=403, detail="No tienes permiso para eliminar esta oferta")
+        OfertaRepository.eliminar(db, oferta)
+
+    @staticmethod
+    def _formatear_oferta(db: Session, oferta: OfertaComunitaria) -> OfertaResponse:
         promedio = OfertaRepository.calcular_promedio(db, oferta.id)
         total = len(oferta.calificaciones) if oferta.calificaciones else 0
         resp = OfertaResponse.model_validate(oferta)
@@ -60,16 +84,7 @@ class OfertaService:
         if orden not in ["relevancia", "recientes"]:
             raise HTTPException(status_code=422, detail="Parámetro de orden inválido. Use 'relevancia' o 'recientes'.")
         ofertas = OfertaRepository.listar_vigentes(db, page, size, orden)
-        res = []
-        for o in ofertas:
-            promedio = OfertaRepository.calcular_promedio(db, o.id)
-            total = len(o.calificaciones) if o.calificaciones else 0
-            resp = OfertaResponse.model_validate(o)
-            resp.autor_username = o.autor.username if o.autor else None
-            resp.promedio_calificacion = promedio
-            resp.total_calificaciones = total
-            res.append(resp)
-        return res
+        return [OfertaService._formatear_oferta(db, o) for o in ofertas]
 
     @staticmethod
     def obtener_datos_mapa():

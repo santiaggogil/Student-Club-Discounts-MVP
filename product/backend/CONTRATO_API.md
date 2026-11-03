@@ -79,7 +79,7 @@
   - 401: No autenticado.
   - 404: Usuario no encontrado.
 
-## Ofertas Comunitarias (HU-05, HU-09, HU-12)
+## Ofertas Comunitarias (HU-05, HU-08, HU-09, HU-12)
 
 ### POST /api/v1/ofertas
 - **Descripción**: Publica una nueva oferta comunitaria.
@@ -87,6 +87,24 @@
 - **Entrada (Multipart Form Data)**:
   - `foto`, `precio`, `ubicacion`, `vigencia`, `titulo`, `descripcion`
 - **Salida (201)**: `{"id": 1, ..., "autor_username": "cazador"}`
+
+### PUT /api/v1/ofertas/{id}
+- **Descripción**: Edita una oferta propia. (HU-08)
+- **Auth**: Requerida (JWT).
+- **Entrada (Multipart Form Data)**:
+  - `foto` (opcional), `precio`, `ubicacion`, `vigencia`, `titulo`, `descripcion`
+- **Salida (200)**: Oferta actualizada.
+- **Errores**:
+  - 403: No es el autor.
+  - 404: No encontrada.
+
+### DELETE /api/v1/ofertas/{id}
+- **Descripción**: Elimina una oferta propia. (HU-08)
+- **Auth**: Requerida (JWT).
+- **Salida (200)**: `{"message": "Oferta eliminada"}`
+- **Errores**:
+  - 403: No es el autor.
+  - 404: No encontrada.
 
 ### GET /api/v1/ofertas
 - **Descripción**: Obtiene el feed de ofertas comunitarias vigentes (paginado) incluyendo la URL codificada de imagen bajo /api/v1/uploads/, el nombre del autor, promedio de calificación y total de calificaciones. Soporta parámetro de ordenamiento (HU-12).

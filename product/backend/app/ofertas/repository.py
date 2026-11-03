@@ -22,24 +22,30 @@ class OfertaRepository:
         return oferta
 
     @staticmethod
+    def actualizar(db: Session, oferta: OfertaComunitaria, data: OfertaCreate, imagen_url: str | None) -> OfertaComunitaria:
+        oferta.titulo = data.titulo
+        oferta.precio = data.precio
+        oferta.ubicacion = data.ubicacion
+        oferta.vigencia = data.vigencia
+        oferta.descripcion = data.descripcion
+        if imagen_url:
+            oferta.imagen = imagen_url
+        db.commit()
+        db.refresh(oferta)
+        return oferta
+
+    @staticmethod
+    def eliminar(db: Session, oferta: OfertaComunitaria):
+        db.query(Calificacion).filter(Calificacion.oferta_id == oferta.id).delete()
+        db.delete(oferta)
+        db.commit()
+
+    @staticmethod
     def listar_vigentes(db: Session, page: int = 1, size: int = 10, orden: str = "relevancia") -> list[OfertaComunitaria]:
         now = datetime.now()
         query = db.query(OfertaComunitaria).options(joinedload(OfertaComunitaria.autor)).filter(OfertaComunitaria.vigencia > now)
-        
-        if orden == "recientes":
-            query = query.order_by(OfertaComunitaria.id.desc())
-        else:
-            # Relevancia: Ordenar por promedio de calificación descendente, total de calificaciones descendente y fecha de vigencia/id desc
-            # En SQLAlchemy, realizamos el cálculo o cargamos y ordenamos en servicio si se prefiere exactitud, o mediante subconsultas/joins.
-            # Como SQLite soporta subconsultas y joins con funciones de agregación, implementaremos ordenamiento eficiente.
-            pass
-            
-        # Para asegurar flexibilidad y robustez en la combinación de relevancia (promedio, total y vigencia),
-        # podemos recuperar las vigentes y aplicar el ordenamiento en memoria o mediante una consulta optimizada.
-        # Dado el paginado, recuperamos todas las vigentes o aplicamos la lógica.
         ofertas = query.all()
         
-        # Ordenamiento en memoria para aplicar reglas exactas de relevancia (promedio desc, total desc, id desc)
         def clave_relevancia(o):
             prom = OfertaRepository.calcular_promedio(db, o.id)
             tot = len(o.calificaciones) if o.calificaciones else 0

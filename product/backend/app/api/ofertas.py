@@ -46,6 +46,34 @@ def publicar_oferta(
     data = OfertaCreate(titulo=titulo, precio=precio, ubicacion=ubicacion, vigencia=vigencia_dt, descripcion=descripcion)
     return OfertaService.publicar_oferta(db, data, foto, current_user.id)
 
+@router.put("/{oferta_id}", response_model=OfertaResponse)
+def editar_oferta(
+    oferta_id: int,
+    titulo: str = Form(...),
+    precio: float = Form(...),
+    ubicacion: str = Form(...),
+    vigencia: str = Form(...),
+    descripcion: str = Form(...),
+    foto: UploadFile | None = File(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        vigencia_dt = datetime.fromisoformat(vigencia)
+    except ValueError:
+        raise HTTPException(status_code=422, detail="Formato de fecha de vigencia inválido")
+    data = OfertaCreate(titulo=titulo, precio=precio, ubicacion=ubicacion, vigencia=vigencia_dt, descripcion=descripcion)
+    return OfertaService.editar_oferta(db, oferta_id, data, foto, current_user.id)
+
+@router.delete("/{oferta_id}")
+def eliminar_oferta(
+    oferta_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    OfertaService.eliminar_oferta(db, oferta_id, current_user.id)
+    return {"message": "Oferta eliminada"}
+
 @router.get("", response_model=list[OfertaResponse])
 def listar_ofertas(
     db: Session = Depends(get_db),
