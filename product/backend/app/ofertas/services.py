@@ -1,11 +1,22 @@
-import os, uuid, unicodedata
+import os, uuid, unicodedata, logging, sys
 from datetime import datetime, timezone
+from pathlib import Path
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, func
 from fastapi import UploadFile, HTTPException
+from app.db.session import SessionLocal
 from app.ofertas.models import OfertaComunitaria, Calificacion
 from app.ofertas.schemas import OfertaResponse, OfertaCreate, CalificacionResponse
 from app.ofertas.repository import OfertaRepository
+from app.social.models import User, Seguimiento
+
+bot_path = Path(__file__).resolve().parent.parent.parent / "bot"
+if str(bot_path) not in sys.path:
+    sys.path.insert(0, str(bot_path))
+
+from bot_ofertas import ClienteTelegram, TelegramError, formatear_publicacion, notificar
+
+logger = logging.getLogger(__name__)
 
 class OfertaService:
     @staticmethod
@@ -100,3 +111,77 @@ class OfertaService:
         o = db.query(OfertaComunitaria).filter(OfertaComunitaria.id == oferta_id, OfertaComunitaria.autor_id == autor_id).first()
         if o:
             OfertaRepository.eliminar(db, o)
+
+    @staticmethod
+    def notificar_seguidores_telegram(oferta_id: int, autor_id: int):
+        db = SessionLocal()
+        try:
+            autor = db.query(User).filter(User.id == autor_id).first()
+            oferta = db.query(OfertaComunitaria).filter(OfertaComunitaria.id == oferta_id).first()
+            if not autor or not oferta:
+                return
+
+            seguimientos = db.query(Seguimiento.seguidor_id).filter(
+                Seguimiento.seguido_id == autor_id,
+                Seguimiento.seguidor_id != autor_id
+            ).all()
+            seguidor_ids = [s[0] for s in seguimientos]
+            if not seguidor_ids:
+                return
+
+            seguidores_vinculados = db.query(User).filter(
+                User.id.in_(seguidor_ids),
+                User.telegram_chat_id.isnot(None)
+            ).all()
+
+            if not seguidores_vinculados:
+                return
+
+            chat_ids = [u.telegram_chat_id for u in seguidores_vinculados if u.telegram_chat_id is not None]
+            if not chat_ids:
+                return
+
+            try:
+                tg = ClienteTelegram()
+            except TelegramError as e:
+                logger.warning(f"Error o falta TELEGRAM_BOT_TOKEN: {e}")
+                return
+            except Exception as e:
+                logger.warning(f"Error inicializando ClienteTelegram: {e}")
+                return
+
+            frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+            url = f"{frontend_url}/feed"
+            autor_username = autor.username or autor.nombre or f"Usuario {autor.id}"
+
+            texto = formatear_publicacion(
+                autor=autor_username,
+                titulo=oferta.titulo,
+                descripcion=oferta.descripcion,
+                ubicacion=oferta.ubicacion,
+                url=url
+            )
+
+            resultado = notificar(tg, chat_ids, texto)
+
+            if resultado and getattr(resultado, "bloqueados", None):
+                for b_chat_id in resultado.bloqueados:
+                    try:
+                        chat_id_val = int(b_chat_id)
+                    except (ValueError, TypeError):
+                        chat_id_val = b_chat_id
+                    db.query(User).filter(
+                        (User.telegram_chat_id == chat_id_val) | (User.telegram_chat_id == str(b_chat_id))
+                    ).update(
+                        {
+                            User.telegram_chat_id: None,
+                            User.telegram_usuario: None,
+                            User.vinculado_en: None
+                        },
+                        synchronize_session=False
+                    )
+                db.commit()
+        except Exception as e:
+            logger.error(f"Excepción en notificar_seguidores_telegram: {e}")
+        finally:
+            db.close()

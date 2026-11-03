@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, UploadFile, File, Form, status, HTTPException, Query, Header
+from fastapi import APIRouter, Depends, UploadFile, File, Form, status, HTTPException, Query, Header, BackgroundTasks
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy.orm import Session
@@ -35,12 +35,24 @@ def get_current_user_optional(credentials: HTTPAuthorizationCredentials = Depend
         return None
 
 @router.post("", response_model=OfertaResponse, status_code=status.HTTP_201_CREATED)
-def publicar_oferta(titulo: str = Form(...), precio: float = Form(...), ubicacion: str = Form(...), vigencia: str = Form(...), descripcion: str = Form(...), foto: UploadFile = File(...), db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def publicar_oferta(
+    background_tasks: BackgroundTasks,
+    titulo: str = Form(...),
+    precio: float = Form(...),
+    ubicacion: str = Form(...),
+    vigencia: str = Form(...),
+    descripcion: str = Form(...),
+    foto: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     try:
         data = OfertaCreate(titulo=titulo, precio=precio, ubicacion=ubicacion, vigencia=vigencia, descripcion=descripcion)
     except ValidationError as e:
         raise HTTPException(status_code=422, detail=[{"msg": str(err["msg"]), "loc": err["loc"]} for err in e.errors()])
-    return OfertaService.publicar_oferta(db, data, foto, current_user.id)
+    oferta = OfertaService.publicar_oferta(db, data, foto, current_user.id)
+    background_tasks.add_task(OfertaService.notificar_seguidores_telegram, oferta.id, current_user.id)
+    return oferta
 
 @router.get("/{oferta_id}", response_model=OfertaResponse)
 def obtener_oferta(oferta_id: int, db: Session = Depends(get_db), user: User | None = Depends(get_current_user_optional)):
