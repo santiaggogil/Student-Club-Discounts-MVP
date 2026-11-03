@@ -7,6 +7,7 @@ import { PublishOfferPage } from '../pages/PublishOfferPage';
 import { FeedPage } from '../pages/FeedPage';
 import { MapPage } from '../pages/MapPage';
 import { ProfilePage } from '../pages/ProfilePage';
+import { FollowList } from '../pages/FollowList';
 import './tokens.css';
 
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean}> {
@@ -30,6 +31,7 @@ export const App: React.FC = () => (
           <Route path="/mapa" element={<MapPage />} />
           <Route path="/perfil" element={<ProfilePage />} />
           <Route path="/perfil/:id" element={<ProfilePage />} />
+          <Route path="/perfil/:id/:type" element={<FollowList />} />
           <Route path="/*" element={<FeedPage />} />
         </Routes>
       </Layout>
