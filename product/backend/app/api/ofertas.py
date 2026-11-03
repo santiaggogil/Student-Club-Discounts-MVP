@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, UploadFile, File, Form, status, HTTPException, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy.orm import Session
-from datetime import datetime
+from datetime import datetime, timezone
 from app.db.session import get_db
 from app.services.auth import decode_token
 from fastapi import Header
@@ -39,11 +39,9 @@ def publicar_oferta(
     current_user: User = Depends(get_current_user)
 ):
     try:
-        vigencia_dt = datetime.fromisoformat(vigencia)
-    except ValueError:
-        raise HTTPException(status_code=422, detail="Formato de fecha de vigencia inválido")
-    
-    data = OfertaCreate(titulo=titulo, precio=precio, ubicacion=ubicacion, vigencia=vigencia_dt, descripcion=descripcion)
+        data = OfertaCreate(titulo=titulo, precio=precio, ubicacion=ubicacion, vigencia=vigencia, descripcion=descripcion)
+    except (ValueError, ValidationError) as e:
+        raise HTTPException(status_code=422, detail=str(e))
     return OfertaService.publicar_oferta(db, data, foto, current_user.id)
 
 @router.put("/{oferta_id}", response_model=OfertaResponse)
@@ -59,10 +57,9 @@ def editar_oferta(
     current_user: User = Depends(get_current_user)
 ):
     try:
-        vigencia_dt = datetime.fromisoformat(vigencia)
-    except ValueError:
-        raise HTTPException(status_code=422, detail="Formato de fecha de vigencia inválido")
-    data = OfertaCreate(titulo=titulo, precio=precio, ubicacion=ubicacion, vigencia=vigencia_dt, descripcion=descripcion)
+        data = OfertaCreate(titulo=titulo, precio=precio, ubicacion=ubicacion, vigencia=vigencia, descripcion=descripcion)
+    except (ValueError, ValidationError) as e:
+        raise HTTPException(status_code=422, detail=str(e))
     return OfertaService.editar_oferta(db, oferta_id, data, foto, current_user.id)
 
 @router.delete("/{oferta_id}")

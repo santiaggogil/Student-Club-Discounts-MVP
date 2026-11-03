@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 from app.ofertas.models import OfertaComunitaria, Calificacion
 from app.ofertas.schemas import OfertaCreate
-from datetime import datetime
+from datetime import datetime, timezone
 
 class OfertaRepository:
     @staticmethod
@@ -42,7 +42,7 @@ class OfertaRepository:
 
     @staticmethod
     def listar_vigentes(db: Session, page: int = 1, size: int = 10, orden: str = "relevancia") -> list[OfertaComunitaria]:
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         query = db.query(OfertaComunitaria).options(joinedload(OfertaComunitaria.autor)).filter(OfertaComunitaria.vigencia > now)
         ofertas = query.all()
         
