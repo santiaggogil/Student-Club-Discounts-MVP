@@ -7,12 +7,6 @@ import { FormInput } from '../components/FormInput';
 import { LoadingState, ErrorState, EmptyState } from '../components/StatusStates';
 import { FollowModal } from '../components/FollowModal';
 
-const profileUpdateSchema = z.object({
-  nombre: z.string().max(100, 'Máximo 100 caracteres').optional(),
-  biografia: z.string().max(500, 'Máximo 500 caracteres').optional(),
-  seguidores_privados: z.boolean().optional(),
-});
-
 export const ProfilePage: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
@@ -23,6 +17,8 @@ export const ProfilePage: React.FC = () => {
   const [followersCount, setFollowersCount] = useState(0);
   const [modalType, setModalType] = useState<'seguidores' | 'seguidos' | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   const [formData, setFormData] = useState({
     nombre: '',
@@ -30,7 +26,6 @@ export const ProfilePage: React.FC = () => {
     seguidores_privados: false,
     foto: null as File | null,
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const fetchProfile = async () => {
     setLoading(true);
@@ -61,17 +56,25 @@ export const ProfilePage: React.FC = () => {
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSaving(true);
+    setSaveError('');
     try {
       const data = new FormData();
       data.append('nombre', formData.nombre);
       data.append('biografia', formData.biografia);
       data.append('seguidores_privados', String(formData.seguidores_privados));
       if (formData.foto) data.append('foto', formData.foto);
-      await api.put('/usuarios/me', data);
+      
+      const res = await api.put('/usuarios/me', data);
+      const updatedUser = res.data;
+      setProfile(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      window.dispatchEvent(new Event('auth-change'));
       setShowEditModal(false);
-      fetchProfile();
     } catch (err: any) {
-      setErrors({ general: 'Error al guardar perfil' });
+      setSaveError(err.response?.data?.detail || 'Error al guardar perfil');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -116,6 +119,7 @@ export const ProfilePage: React.FC = () => {
               <h3>Editar Mi Perfil</h3>
               <button onClick={() => setShowEditModal(false)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '1.2rem' }}>×</button>
             </div>
+            {saveError && <ErrorState title="Error" message={saveError} />}
             <form onSubmit={handleSaveProfile}>
               <FormInput label="Nombre" value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} />
               <FormInput label="Biografía" value={formData.biografia} onChange={e => setFormData({...formData, biografia: e.target.value})} />
@@ -124,7 +128,9 @@ export const ProfilePage: React.FC = () => {
                 Seguidores privados
               </label>
               <input type="file" onChange={e => setFormData({...formData, foto: e.target.files?.[0] || null})} />
-              <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '1rem' }}>Guardar</button>
+              <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '1rem' }} disabled={saving}>
+                {saving ? 'Guardando...' : 'Guardar Cambios'}
+              </button>
             </form>
           </div>
         </div>

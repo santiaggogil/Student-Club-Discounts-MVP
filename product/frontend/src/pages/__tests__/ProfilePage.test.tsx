@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ProfilePage } from '../ProfilePage';
 import api from '../../services/api';
@@ -34,5 +34,23 @@ describe('ProfilePage Component (HU-03)', () => {
     render(<MemoryRouter><ProfilePage /></MemoryRouter>);
     await waitFor(() => expect(screen.getByText('Oferta 1')).toBeInTheDocument());
     expect(screen.getByText('Oferta 2')).toBeInTheDocument();
+  });
+
+  it('al guardar con foto, envía FormData y cierra el modal', async () => {
+    (api.get as any).mockResolvedValue({ data: { id: 1, username: 'cazador' } });
+    (api.put as any).mockResolvedValue({ data: { id: 1, username: 'cazador', foto_perfil: 'new.jpg' } });
+
+    render(<MemoryRouter><ProfilePage /></MemoryRouter>);
+    await waitFor(() => fireEvent.click(screen.getByText('⚙️')));
+    
+    const file = new File(['(binary)'], 'foto.jpg', { type: 'image/jpeg' });
+    fireEvent.change(screen.getByLabelText(/nombre/i).parentElement!.querySelector('input[type="file"]') || screen.getByRole('textbox', {name: /nombre/i}).parentElement!.parentElement!.querySelector('input[type="file"]')!, { target: { files: [file] } });
+    
+    fireEvent.click(screen.getByText('Guardar Cambios'));
+    
+    await waitFor(() => {
+      expect(api.put).toHaveBeenCalledWith('/usuarios/me', expect.any(FormData));
+      expect(screen.queryByText('Editar Mi Perfil')).not.toBeInTheDocument();
+    });
   });
 });
