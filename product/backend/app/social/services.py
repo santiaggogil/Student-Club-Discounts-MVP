@@ -58,11 +58,11 @@ class SocialService:
             raise HTTPException(status_code=404, detail="Usuario no encontrado")
         existing = db.query(Seguimiento).filter(Seguimiento.seguidor_id == seguidor_id, Seguimiento.seguido_id == seguido_id).first()
         if existing:
-            raise HTTPException(status_code=400, detail="Ya sigues a este usuario")
+            raise HTTPException(status_code=409, detail="Ya sigues a este usuario")
         s = Seguimiento(seguidor_id=seguidor_id, seguido_id=seguido_id)
         db.add(s)
         db.commit()
-        return {"message": "Usuario seguido exitosamente"}
+        return {"message": "Ahora sigues a este usuario"}
 
     @staticmethod
     def dejar_de_seguir_usuario(db: Session, seguidor_id: int, seguido_id: int):
@@ -71,7 +71,9 @@ class SocialService:
             raise HTTPException(status_code=404, detail="Relación de seguimiento no encontrada")
         db.delete(s)
         db.commit()
-        return {"message": "Has dejado de seguir al usuario"}
+        return {
+            "message": "Has dejado de seguir al usuario"
+        }
 
     @staticmethod
     def listar_seguidores(db: Session, user_id: int, page: int, size: int, current_user: User | None):

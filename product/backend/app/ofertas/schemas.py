@@ -12,8 +12,13 @@ class OfertaCreate(BaseModel):
     @classmethod
     def parse_vigencia(cls, v):
         if isinstance(v, datetime): return v
-        dt = datetime.fromisoformat(v.replace('Z', '+00:00'))
-        return dt.astimezone(timezone.utc) if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+        if isinstance(v, str):
+            s = v.strip()
+            if s.endswith('Z'):
+                s = s[:-1] + '+00:00'
+            dt = datetime.fromisoformat(s)
+            return dt.astimezone(timezone.utc) if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+        raise ValueError("Formato de fecha inválido")
 
 class OfertaResponse(BaseModel):
     id: int
