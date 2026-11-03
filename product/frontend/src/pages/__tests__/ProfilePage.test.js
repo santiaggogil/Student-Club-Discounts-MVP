@@ -19,7 +19,10 @@ describe('ProfilePage Component (HU-03)', () => {
         localStorage.setItem('token', 'fake-token');
     });
     it('renderiza correctamente el perfil del usuario autenticado y su formulario de edición', async () => {
-        api.get.mockResolvedValueOnce({ data: { id: 1, username: 'cazador', nombre: 'Cazador Experto', biografia: 'Amante de los descuentos', seguidores_privados: false, ofertas: [] } });
+        api.get.mockImplementation((url) => {
+            if (url === '/usuarios/me') return Promise.resolve({ data: { id: 1, username: 'cazador' } });
+            return Promise.resolve({ data: { id: 1, username: 'cazador', nombre: 'Cazador Experto', biografia: 'Amante de los descuentos', seguidores_privados: false, ofertas: [] } });
+        });
         render(_jsx(MemoryRouter, { initialEntries: ['/perfil'], children: _jsx(Routes, { children: _jsx(Route, { path: "/perfil", element: _jsx(ProfilePage, {}) }) }) }));
         await waitFor(() => {
             expect(screen.getByText('Cazador Experto')).toBeInTheDocument();
@@ -27,8 +30,10 @@ describe('ProfilePage Component (HU-03)', () => {
         });
     });
     it('muestra botón de seguir en perfil público ajeno', async () => {
-        api.get.mockResolvedValueOnce({ data: { id: 1 } }); // me
-        api.get.mockResolvedValueOnce({ data: { id: 2, username: 'otro', seguidores_count: 0, lo_sigo: false } }); // perfil ajeno
+        api.get.mockImplementation((url) => {
+            if (url === '/usuarios/me') return Promise.resolve({ data: { id: 1, username: 'cazador' } });
+            return Promise.resolve({ data: { id: 2, username: 'otro', seguidores_count: 0, lo_sigo: false } });
+        });
         api.post.mockResolvedValueOnce({ data: {} });
         render(_jsx(MemoryRouter, { initialEntries: ['/perfil/2'], children: _jsx(Routes, { children: _jsx(Route, { path: "/perfil/:id", element: _jsx(ProfilePage, {}) }) }) }));
         await waitFor(() => {

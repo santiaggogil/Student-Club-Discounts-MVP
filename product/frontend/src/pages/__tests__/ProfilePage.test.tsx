@@ -21,7 +21,10 @@ describe('ProfilePage Component (HU-03)', () => {
   });
 
   it('renderiza correctamente el perfil del usuario autenticado y su formulario de edición', async () => {
-    (api.get as any).mockResolvedValueOnce({ data: { id: 1, username: 'cazador', nombre: 'Cazador Experto', biografia: 'Amante de los descuentos', seguidores_privados: false, ofertas: [] } });
+    (api.get as any).mockImplementation((url: string) => {
+      if (url === '/usuarios/me') return Promise.resolve({ data: { id: 1, username: 'cazador' } });
+      return Promise.resolve({ data: { id: 1, username: 'cazador', nombre: 'Cazador Experto', biografia: 'Amante de los descuentos', seguidores_privados: false, ofertas: [] } });
+    });
 
     render(
       <MemoryRouter initialEntries={['/perfil']}>
@@ -38,8 +41,10 @@ describe('ProfilePage Component (HU-03)', () => {
   });
 
   it('muestra botón de seguir en perfil público ajeno', async () => {
-    (api.get as any).mockResolvedValueOnce({ data: { id: 1 } }); // me
-    (api.get as any).mockResolvedValueOnce({ data: { id: 2, username: 'otro', seguidores_count: 0, lo_sigo: false } }); // perfil ajeno
+    (api.get as any).mockImplementation((url: string) => {
+      if (url === '/usuarios/me') return Promise.resolve({ data: { id: 1, username: 'cazador' } });
+      return Promise.resolve({ data: { id: 2, username: 'otro', seguidores_count: 0, lo_sigo: false } });
+    });
     (api.post as any).mockResolvedValueOnce({ data: {} });
 
     render(

@@ -8,6 +8,7 @@ import { PublishOfferPage } from '../pages/PublishOfferPage';
 import { FeedPage } from '../pages/FeedPage';
 import { MapPage } from '../pages/MapPage';
 import { ProfilePage } from '../pages/ProfilePage';
+import { FollowList } from '../pages/FollowList';
 import './tokens.css';
 class ErrorBoundary extends React.Component {
     constructor(props) { super(props); this.state = { hasError: false }; }
@@ -18,5 +19,5 @@ class ErrorBoundary extends React.Component {
         return this.props.children;
     }
 }
-export const App = () => (_jsx(Router, { children: _jsx(ErrorBoundary, { children: _jsx(Layout, { children: _jsxs(Routes, { children: [_jsx(Route, { path: "/login", element: _jsx(LoginPage, {}) }), _jsx(Route, { path: "/register", element: _jsx(RegisterPage, {}) }), _jsx(Route, { path: "/publicar", element: _jsx(PublishOfferPage, {}) }), _jsx(Route, { path: "/ofertas/:id/editar", element: _jsx(PublishOfferPage, {}) }), _jsx(Route, { path: "/mapa", element: _jsx(MapPage, {}) }), _jsx(Route, { path: "/perfil", element: _jsx(ProfilePage, {}) }), _jsx(Route, { path: "/perfil/:id", element: _jsx(ProfilePage, {}) }), _jsx(Route, { path: "/*", element: _jsx(FeedPage, {}) })] }) }) }) }));
+export const App = () => (_jsx(Router, { children: _jsx(ErrorBoundary, { children: _jsx(Layout, { children: _jsxs(Routes, { children: [_jsx(Route, { path: "/login", element: _jsx(LoginPage, {}) }), _jsx(Route, { path: "/register", element: _jsx(RegisterPage, {}) }), _jsx(Route, { path: "/publicar", element: _jsx(PublishOfferPage, {}) }), _jsx(Route, { path: "/ofertas/:id/editar", element: _jsx(PublishOfferPage, {}) }), _jsx(Route, { path: "/mapa", element: _jsx(MapPage, {}) }), _jsx(Route, { path: "/perfil", element: _jsx(ProfilePage, {}) }), _jsx(Route, { path: "/perfil/:id", element: _jsx(ProfilePage, {}) }), _jsx(Route, { path: "/perfil/:id/:type", element: _jsx(FollowList, {}) }), _jsx(Route, { path: "/*", element: _jsx(FeedPage, {}) })] }) }) }) }));
 export default App;
