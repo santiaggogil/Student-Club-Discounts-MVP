@@ -26,6 +26,7 @@ export const App: React.FC = () => (
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/publicar" element={<PublishOfferPage />} />
+          <Route path="/ofertas/:id/editar" element={<PublishOfferPage />} />
           <Route path="/mapa" element={<MapPage />} />
           <Route path="/perfil" element={<ProfilePage />} />
           <Route path="/perfil/:id" element={<ProfilePage />} />

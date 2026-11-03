@@ -11,13 +11,12 @@ export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
   const [promedio, setPromedio] = useState(offer.calificacion || 0);
   const [total, setTotal] = useState(offer.total_calificaciones || 0);
   const [imgError, setImgError] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const navigate = useNavigate();
   const autorNombre = offer.autor_username || offer.autor || 'Anónimo';
   const autorId = offer.autor_id;
   const imageUrl = offer.imagen || offer.foto || '';
 
-  // Obtener usuario autenticado de localStorage
   let currentUser: any = null;
   try {
     const userStr = localStorage.getItem('user');
@@ -32,28 +31,27 @@ export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
   };
 
   const handleDelete = async () => {
-    if (window.confirm('¿Estás seguro de eliminar esta oferta?')) {
-      try {
-        await api.delete(`/ofertas/${offer.id}`);
-        if (offer.onDelete) offer.onDelete(offer.id);
-        else window.location.reload();
-      } catch (err) {
-        alert('Error al eliminar la oferta');
-      }
+    try {
+      await api.delete(`/ofertas/${offer.id}`);
+      if (offer.onDelete) offer.onDelete(offer.id);
+      else window.location.reload();
+    } catch (err) {
+      alert('Error al eliminar la oferta');
     }
+    setShowConfirm(false);
   };
 
   return (
     <div className="offer-card" style={{ background: 'var(--card-bg, #fff)', border: '1px solid var(--border-color, #e0e0e0)', borderRadius: '12px', padding: '1rem', marginBottom: '1.25rem', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', position: 'relative' }}>
-      {isOwnOffer && (
-        <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
-          <button onClick={() => setShowMenu(!showMenu)} aria-label="Opciones de oferta" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}>⋮</button>
-          {showMenu && (
-            <div style={{ position: 'absolute', right: 0, background: '#fff', border: '1px solid #ccc', borderRadius: '4px', padding: '0.5rem', zIndex: 10 }}>
-              <button onClick={() => navigate(`/ofertas/${offer.id}/editar`)} style={{ display: 'block', width: '100%', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer' }}>Editar</button>
-              <button onClick={handleDelete} style={{ display: 'block', width: '100%', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', color: 'red' }}>Eliminar</button>
+      {showConfirm && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: '#fff', padding: '1.5rem', borderRadius: '12px', maxWidth: '400px' }}>
+            <p>¿Seguro que quieres eliminar esta oferta? Esta acción no se puede deshacer</p>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+              <button onClick={() => setShowConfirm(false)}>Cancelar</button>
+              <button onClick={handleDelete} style={{ color: 'red' }}>Eliminar</button>
             </div>
-          )}
+          </div>
         </div>
       )}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
@@ -75,6 +73,12 @@ export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
             </div>
           </div>
         </div>
+        {isOwnOffer && (
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button onClick={() => navigate(`/ofertas/${offer.id}/editar`)} style={{ border: '1px solid var(--primary-blue)', color: 'var(--primary-blue)', background: 'transparent', borderRadius: '4px', padding: '0.2rem 0.5rem', cursor: 'pointer' }}>Editar</button>
+            <button onClick={() => setShowConfirm(true)} style={{ border: 'none', color: 'red', background: 'transparent', cursor: 'pointer' }}>Eliminar</button>
+          </div>
+        )}
       </div>
 
       {imageUrl && !imgError ? (
