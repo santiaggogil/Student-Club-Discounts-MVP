@@ -12,6 +12,7 @@ from app.api.auth import router as auth_router
 from app.api.ofertas import router as ofertas_router
 from app.api.mapa import router as mapa_router
 from app.api.social import router as social_router
+from app.api.telegram import router as telegram_router
 from app.db.session import engine, Base, run_migrations
 
 Base.metadata.create_all(bind=engine)
@@ -26,6 +27,7 @@ app.include_router(auth_router, prefix="/api/v1/auth")
 app.include_router(ofertas_router, prefix="/api/v1/ofertas")
 app.include_router(mapa_router, prefix="/api/v1")
 app.include_router(social_router, prefix="/api/v1/usuarios")
+app.include_router(telegram_router, prefix="/api/v1/telegram")
 
 if __name__ == "__main__":
     import uvicorn

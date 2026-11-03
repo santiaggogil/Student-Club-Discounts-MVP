@@ -12,3 +12,8 @@
 - GET /api/v1/usuarios/me: Perfil propio con 'ofertas_publicadas' (incluye 'autor_foto').
 - PUT /api/v1/usuarios/me: Actualizar perfil y foto (multipart).
 - GET /api/v1/usuarios/{id}: Perfil público con 'ofertas_publicadas' (incluye 'autor_foto').
+
+## Telegram (HU-23)
+- POST /api/v1/telegram/vincular: Genera código de vinculación. Devuelve {enlace}.
+- GET /api/v1/telegram/estado: Verifica estado de vinculación. Devuelve {vinculado, usuario_telegram}.
+- DELETE /api/v1/telegram/vincular: Desvincula la cuenta.
