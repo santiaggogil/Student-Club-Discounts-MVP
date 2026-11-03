@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { FeedPage } from '../FeedPage';
 import api from '../../services/api';
 
@@ -32,7 +33,7 @@ describe('FeedPage Component (HU-12-FE)', () => {
       ]
     });
 
-    render(<FeedPage />);
+    render(<MemoryRouter><FeedPage /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Más relevantes')).toBeInTheDocument();
@@ -46,7 +47,7 @@ describe('FeedPage Component (HU-12-FE)', () => {
       data: []
     });
 
-    render(<FeedPage />);
+    render(<MemoryRouter><FeedPage /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Más recientes')).toBeInTheDocument();
