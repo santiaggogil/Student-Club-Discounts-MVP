@@ -134,6 +134,12 @@ export const PublishOfferPage: React.FC = () => {
       {step === 1 && (
         <div className="form-group">
           <label htmlFor="foto" className="form-label">Foto de la oferta {isEditMode && '(opcional)'}</label>
+          {isEditMode && initialData?.imagen && (
+            <div style={{ marginBottom: '0.5rem' }}>
+              <p style={{ fontSize: '0.8rem', color: '#666' }}>Imagen actual:</p>
+              <img src={initialData.imagen} alt="Vista previa" style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '4px' }} />
+            </div>
+          )}
           <input id="foto" type="file" onChange={handleFile} className="form-control" accept="image/jpeg,image/png" />
           {errors.foto && <span className="form-error" role="alert">{errors.foto}</span>}
         </div>

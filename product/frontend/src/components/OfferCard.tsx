@@ -16,6 +16,8 @@ interface OfferCardProps {
     autor_username?: string;
     autor?: string;
     calificacion: number;
+    promedio_calificacion?: number;
+    mi_calificacion?: number | null;
     total_calificaciones: number;
     es_propia?: boolean;
     vigente?: boolean;
@@ -25,8 +27,9 @@ interface OfferCardProps {
 }
 
 export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
-  const [promedio, setPromedio] = useState(offer.calificacion || 0);
+  const [promedio, setPromedio] = useState(offer.promedio_calificacion ?? offer.calificacion ?? 0);
   const [total, setTotal] = useState(offer.total_calificaciones || 0);
+  const [miCalificacion, setMiCalificacion] = useState(offer.mi_calificacion || 0);
   const [imgError, setImgError] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -54,9 +57,10 @@ export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
 
   const isOwnOffer = offer.es_propia || (currentUser && autorId && Number(currentUser.id) === Number(autorId));
 
-  const handleUpdateRating = (nuevoPromedio: number, nuevoTotal: number) => {
+  const handleUpdateRating = (nuevoPromedio: number, nuevoTotal: number, miNuevaCalificacion: number) => {
     setPromedio(nuevoPromedio);
     setTotal(nuevoTotal);
+    setMiCalificacion(miNuevaCalificacion);
   };
 
   const handleDelete = async () => {
@@ -160,7 +164,7 @@ export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border-color, #e0e0e0)', paddingTop: '0.75rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <RatingStars ofertaId={offer.id} initialRating={Math.round(promedio)} isOwner={!!isOwnOffer} onRate={handleUpdateRating} />
+          <RatingStars ofertaId={offer.id} initialRating={miCalificacion} isOwner={!!isOwnOffer} onRate={handleUpdateRating} />
           <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>({promedio.toFixed(1)})</span>
           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{total} votos</span>
         </div>

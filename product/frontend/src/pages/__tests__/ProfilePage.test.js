@@ -21,7 +21,7 @@ describe('ProfilePage Component (HU-03)', () => {
     it('al hacer clic en Seguidores abre el modal y llama al servicio', async () => {
         api.get.mockImplementation((url) => {
             if (url === '/usuarios/me')
-                return Promise.resolve({ data: { id: 1, username: 'cazador' } });
+                return Promise.resolve({ data: { id: 1, username: 'cazador', seguidores_count: 1 } });
             if (url.includes('/seguidores'))
                 return Promise.resolve({ data: [{ id: 2, username: 'seguidor1' }] });
             return Promise.resolve({ data: { id: 1, username: 'cazador', seguidores_count: 1 } });

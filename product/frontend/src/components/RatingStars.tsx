@@ -5,7 +5,7 @@ interface RatingStarsProps {
   ofertaId: number;
   initialRating: number;
   isOwner: boolean;
-  onRate: (newRating: number, newTotal: number) => void;
+  onRate: (newPromedio: number, newTotal: number, newMiCalificacion: number) => void;
 }
 
 export const RatingStars: React.FC<RatingStarsProps> = ({ ofertaId, initialRating, isOwner, onRate }) => {
@@ -22,7 +22,7 @@ export const RatingStars: React.FC<RatingStarsProps> = ({ ofertaId, initialRatin
       const response = await api.post(`/ofertas/${ofertaId}/calificar`, { puntuacion: val });
       setRating(val);
       if (response.data) {
-        onRate(response.data.promedio, response.data.total_calificaciones);
+        onRate(response.data.promedio_calificacion, response.data.total_calificaciones, val);
       }
     } catch (err: any) {
       const msg = err.response?.data?.detail || 'Error al calificar';
