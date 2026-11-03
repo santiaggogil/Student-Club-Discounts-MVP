@@ -9,12 +9,14 @@ from app.ofertas.services import OfertaService
 from app.social.models import User
 
 router = APIRouter()
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 class CalificacionIn(BaseModel):
     puntuacion: int = Field(..., ge=1, le=5)
 
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)) -> User:
+    if not credentials:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="No autenticado")
     token = credentials.credentials
     payload = decode_token(token)
     if not payload:
@@ -25,6 +27,8 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
     return user
 
 def get_current_user_optional(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)) -> User | None:
+    if not credentials:
+        return None
     try:
         return get_current_user(credentials, db)
     except HTTPException:
@@ -35,7 +39,7 @@ def publicar_oferta(titulo: str = Form(...), precio: float = Form(...), ubicacio
     try:
         data = OfertaCreate(titulo=titulo, precio=precio, ubicacion=ubicacion, vigencia=vigencia, descripcion=descripcion)
     except ValidationError as e:
-        raise HTTPException(status_code=422, detail=e.errors())
+        raise HTTPException(status_code=422, detail=[{"msg": str(err["msg"]), "loc": err["loc"]} for err in e.errors()])
     return OfertaService.publicar_oferta(db, data, foto, current_user.id)
 
 @router.get("/{oferta_id}", response_model=OfertaResponse)
@@ -47,7 +51,7 @@ def editar_oferta(oferta_id: int, titulo: str = Form(...), precio: float = Form(
     try:
         data = OfertaCreate(titulo=titulo, precio=precio, ubicacion=ubicacion, vigencia=vigencia, descripcion=descripcion)
     except ValidationError as e:
-        raise HTTPException(status_code=422, detail=e.errors())
+        raise HTTPException(status_code=422, detail=[{"msg": str(err["msg"]), "loc": err["loc"]} for err in e.errors()])
     return OfertaService.editar_oferta(db, oferta_id, data, foto, current_user.id)
 
 @router.delete("/{oferta_id}")
