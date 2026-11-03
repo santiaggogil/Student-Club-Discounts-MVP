@@ -19,6 +19,9 @@ export const ProfilePage: React.FC = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [tgStatus, setTgStatus] = useState<{ vinculado: boolean; usuario_telegram?: string } | null>(null);
+  const [tgLoading, setTgLoading] = useState(false);
+  const [tgError, setTgError] = useState('');
 
   let currentUserId: number | null = null;
   try {
@@ -37,6 +40,37 @@ export const ProfilePage: React.FC = () => {
     seguidores_privados: false,
     foto: null as File | null,
   });
+
+  const fetchTelegramStatus = async () => {
+    setTgLoading(true);
+    setTgError('');
+    try {
+      const res = await api.get('/telegram/estado');
+      setTgStatus(res.data);
+    } catch (err: any) {
+      setTgError(err.response?.data?.error || 'Error al consultar Telegram');
+    } finally {
+      setTgLoading(false);
+    }
+  };
+
+  const handleVincular = async () => {
+    try {
+      const res = await api.post('/telegram/vincular');
+      window.open(res.data.enlace, '_blank');
+    } catch (err: any) {
+      setTgError(err.response?.data?.error || 'Error al vincular');
+    }
+  };
+
+  const handleDesvincular = async () => {
+    try {
+      await api.delete('/telegram/vincular');
+      await fetchTelegramStatus();
+    } catch (err: any) {
+      setTgError(err.response?.data?.error || 'Error al desvincular');
+    }
+  };
 
   const fetchProfile = async () => {
     setLoading(true);
@@ -127,6 +161,10 @@ export const ProfilePage: React.FC = () => {
     fetchProfile();
   }, [id]);
 
+  useEffect(() => {
+    if (showEditModal) fetchTelegramStatus();
+  }, [showEditModal]);
+
   if (loading) return <LoadingState message="Cargando perfil..." />;
   if (error && !profile) return <ErrorState title="Error" message={error} onRetry={fetchProfile} />;
   if (!profile) return <EmptyState title="Usuario no encontrado" message="El perfil solicitado no existe." />;
@@ -186,6 +224,20 @@ export const ProfilePage: React.FC = () => {
                 Seguidores privados
               </label>
               <input type="file" onChange={e => setFormData({...formData, foto: e.target.files?.[0] || null})} />
+              <div style={{ marginTop: '1.5rem', borderTop: '1px solid #eee', paddingTop: '1rem' }}>
+                <h4>Telegram</h4>
+                {tgLoading ? <LoadingState /> : tgError ? <ErrorState message={tgError} onRetry={fetchTelegramStatus} /> : tgStatus?.vinculado ? (
+                  <div>
+                    <p>Vinculado como @{tgStatus.usuario_telegram}</p>
+                    <button onClick={handleDesvincular} className="btn-secondary-outline" style={{ color: '#dc3545', borderColor: '#dc3545' }}>Desvincular</button>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button onClick={handleVincular} className="btn-primary">Vincular con Telegram</button>
+                    <button onClick={fetchTelegramStatus} className="btn-secondary-outline">Ya lo vinculé</button>
+                  </div>
+                )}
+              </div>
               <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '1rem' }} disabled={saving}>
                 {saving ? 'Guardando...' : 'Guardar Cambios'}
               </button>
