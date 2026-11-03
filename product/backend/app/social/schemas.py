@@ -22,6 +22,9 @@ class UserProfileResponse(BaseModel):
     foto_perfil: str | None
     biografia: str | None
     seguidores_privados: bool
+    seguidores_count: int = 0
+    seguidos_count: int = 0
+    lo_sigo: bool = False
     ofertas_publicadas: list = []
 
     class Config:

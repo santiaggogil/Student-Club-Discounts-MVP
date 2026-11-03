@@ -1,6 +1,7 @@
 import os, uuid, unicodedata
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, func
+from fastapi import UploadFile, HTTPException
 from app.ofertas.models import OfertaComunitaria, Calificacion
 from app.ofertas.schemas import OfertaResponse, OfertaCreate
 from app.ofertas.repository import OfertaRepository
@@ -27,36 +28,62 @@ class OfertaService:
         if user_id:
             c = db.query(Calificacion).filter(Calificacion.oferta_id == oferta.id, Calificacion.usuario_id == user_id).first()
             if c: mi_cal = c.puntuacion
-        return OfertaResponse(id=oferta.id, titulo=oferta.titulo, precio=oferta.precio, ubicacion=oferta.ubicacion, vigencia=oferta.vigencia, descripcion=oferta.descripcion, imagen=oferta.imagen, autor_id=oferta.autor_id, autor_username=oferta.autor.username, promedio_calificacion=promedio, total_calificaciones=len(calificaciones), mi_calificacion=mi_cal)
+        return OfertaResponse(
+            id=oferta.id,
+            titulo=oferta.titulo,
+            precio=oferta.precio,
+            ubicacion=oferta.ubicacion,
+            vigencia=oferta.vigencia,
+            descripcion=oferta.descripcion,
+            imagen=oferta.imagen,
+            autor_id=oferta.autor_id,
+            autor_username=oferta.autor.username if oferta.autor else None,
+            promedio_calificacion=promedio,
+            total_calificaciones=len(calificaciones),
+            mi_calificacion=mi_cal
+        )
 
     @staticmethod
     def obtener_oferta(db: Session, oferta_id: int, user_id: int | None) -> OfertaResponse:
         o = db.query(OfertaComunitaria).filter(OfertaComunitaria.id == oferta_id).first()
+        if not o:
+            raise HTTPException(status_code=404, detail="Oferta no encontrada")
         return OfertaService._formatear_oferta(db, o, user_id)
 
     @staticmethod
     def calificar_oferta(db: Session, oferta_id: int, user_id: int, puntuacion: int) -> float:
+        o = db.query(OfertaComunitaria).filter(OfertaComunitaria.id == oferta_id).first()
+        if o and o.autor_id == user_id:
+            raise HTTPException(status_code=400, detail="No puedes calificar tu propia oferta")
         OfertaRepository.guardar_calificacion(db, oferta_id, user_id, puntuacion)
         return OfertaRepository.calcular_promedio(db, oferta_id)
 
     @staticmethod
-    def publicar_oferta(db, data, foto, autor_id):
+    def publicar_oferta(db: Session, data: OfertaCreate, foto: UploadFile, autor_id: int):
+        if foto and foto.content_type not in ["image/jpeg", "image/png", "image/webp"]:
+            raise HTTPException(status_code=422, detail="Formato de imagen no permitido")
+        content = foto.file.read() if foto else b""
         filename = f"{uuid.uuid4()}.jpg"
-        with open(f"backend/uploads/{filename}", "wb") as f: f.write(foto.file.read())
+        with open(f"backend/uploads/{filename}", "wb") as f: f.write(content)
         return OfertaRepository.crear(db, data, f"/api/v1/uploads/{filename}", autor_id)
 
     @staticmethod
-    def editar_oferta(db, oferta_id, data, foto, autor_id):
+    def editar_oferta(db: Session, oferta_id: int, data: OfertaCreate, foto: UploadFile | None, autor_id: int):
         o = db.query(OfertaComunitaria).filter(OfertaComunitaria.id == oferta_id, OfertaComunitaria.autor_id == autor_id).first()
-        if not o: raise Exception("No autorizada")
+        if not o:
+            raise HTTPException(status_code=403, detail="No autorizado para editar esta oferta")
         img = None
         if foto:
+            if foto.content_type not in ["image/jpeg", "image/png", "image/webp"]:
+                raise HTTPException(status_code=422, detail="Formato de imagen no permitido")
+            content = foto.file.read()
             filename = f"{uuid.uuid4()}.jpg"
-            with open(f"backend/uploads/{filename}", "wb") as f: f.write(foto.file.read())
+            with open(f"backend/uploads/{filename}", "wb") as f: f.write(content)
             img = f"/api/v1/uploads/{filename}"
         return OfertaRepository.actualizar(db, o, data, img)
 
     @staticmethod
-    def eliminar_oferta(db, oferta_id, autor_id):
+    def eliminar_oferta(db: Session, oferta_id: int, autor_id: int):
         o = db.query(OfertaComunitaria).filter(OfertaComunitaria.id == oferta_id, OfertaComunitaria.autor_id == autor_id).first()
-        if o: OfertaRepository.eliminar(db, o)
+        if o:
+            OfertaRepository.eliminar(db, o)
