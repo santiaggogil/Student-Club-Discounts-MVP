@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { z } from 'zod';
 import api from '../services/api';
 import { OfferCard } from '../components/OfferCard';
 import { FormInput } from '../components/FormInput';
@@ -63,9 +62,13 @@ export const ProfilePage: React.FC = () => {
       data.append('nombre', formData.nombre);
       data.append('biografia', formData.biografia);
       data.append('seguidores_privados', String(formData.seguidores_privados));
-      if (formData.foto) data.append('foto', formData.foto);
+      if (formData.foto) {
+        data.append('foto', formData.foto);
+      }
       
-      const res = await api.put('/usuarios/me', data);
+      const res = await api.put('/usuarios/me', data, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
       const updatedUser = res.data;
       setProfile(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));

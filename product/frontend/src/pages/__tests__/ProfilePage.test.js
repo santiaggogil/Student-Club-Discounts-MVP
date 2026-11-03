@@ -1,6 +1,6 @@
 import { jsx as _jsx } from "react/jsx-runtime";
 import '@testing-library/jest-dom';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ProfilePage } from '../ProfilePage';
@@ -32,5 +32,23 @@ describe('ProfilePage Component (HU-03)', () => {
         render(_jsx(MemoryRouter, { children: _jsx(ProfilePage, {}) }));
         await waitFor(() => expect(screen.getByText('Oferta 1')).toBeInTheDocument());
         expect(screen.getByText('Oferta 2')).toBeInTheDocument();
+    });
+    it('al guardar con foto, envía FormData con multipart/form-data y el archivo, y actualiza el avatar', async () => {
+        api.get.mockResolvedValue({ data: { id: 1, username: 'cazador', foto_perfil: 'old.jpg' } });
+        api.put.mockResolvedValue({ data: { id: 1, username: 'cazador', foto_perfil: 'new.jpg' } });
+        render(_jsx(MemoryRouter, { children: _jsx(ProfilePage, {}) }));
+        await waitFor(() => fireEvent.click(screen.getByText('⚙️')));
+        const file = new File(['(binary)'], 'foto.jpg', { type: 'image/jpeg' });
+        const fileInput = document.querySelector('input[type="file"]');
+        fireEvent.change(fileInput, { target: { files: [file] } });
+        fireEvent.click(screen.getByText('Guardar Cambios'));
+        await waitFor(() => {
+            expect(api.put).toHaveBeenCalledWith('/usuarios/me', expect.any(FormData), expect.objectContaining({
+                headers: expect.objectContaining({ 'Content-Type': 'multipart/form-data' })
+            }));
+            const formDataArg = api.put.mock.calls[0][1];
+            expect(formDataArg.get('foto')).toBe(file);
+            expect(screen.queryByText('Editar Mi Perfil')).not.toBeInTheDocument();
+        });
     });
 });

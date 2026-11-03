@@ -36,20 +36,29 @@ describe('ProfilePage Component (HU-03)', () => {
     expect(screen.getByText('Oferta 2')).toBeInTheDocument();
   });
 
-  it('al guardar con foto, envía FormData y cierra el modal', async () => {
-    (api.get as any).mockResolvedValue({ data: { id: 1, username: 'cazador' } });
+  it('al guardar con foto, envía FormData con multipart/form-data y el archivo, y actualiza el avatar', async () => {
+    (api.get as any).mockResolvedValue({ data: { id: 1, username: 'cazador', foto_perfil: 'old.jpg' } });
     (api.put as any).mockResolvedValue({ data: { id: 1, username: 'cazador', foto_perfil: 'new.jpg' } });
 
     render(<MemoryRouter><ProfilePage /></MemoryRouter>);
     await waitFor(() => fireEvent.click(screen.getByText('⚙️')));
     
     const file = new File(['(binary)'], 'foto.jpg', { type: 'image/jpeg' });
-    fireEvent.change(screen.getByLabelText(/nombre/i).parentElement!.querySelector('input[type="file"]') || screen.getByRole('textbox', {name: /nombre/i}).parentElement!.parentElement!.querySelector('input[type="file"]')!, { target: { files: [file] } });
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(fileInput, { target: { files: [file] } });
     
     fireEvent.click(screen.getByText('Guardar Cambios'));
     
     await waitFor(() => {
-      expect(api.put).toHaveBeenCalledWith('/usuarios/me', expect.any(FormData));
+      expect(api.put).toHaveBeenCalledWith(
+        '/usuarios/me',
+        expect.any(FormData),
+        expect.objectContaining({
+          headers: expect.objectContaining({ 'Content-Type': 'multipart/form-data' })
+        })
+      );
+      const formDataArg = (api.put as any).mock.calls[0][1];
+      expect(formDataArg.get('foto')).toBe(file);
       expect(screen.queryByText('Editar Mi Perfil')).not.toBeInTheDocument();
     });
   });
