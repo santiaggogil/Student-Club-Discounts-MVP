@@ -7,7 +7,7 @@ def test_publicar_vigencia_invalida_422(client, db):
     login = client.post("/api/v1/auth/login", json={"identifier": "testuser", "password": "Password123"})
     token = login.json()["access_token"]
     
-    resp = client.post("/api/v1/ofertas/", 
+    resp = client.post("/api/v1/ofertas", 
                        headers={"Authorization": f"Bearer {token}"},
                        files={"foto": ("test.jpg", b"data", "image/jpeg")}, 
                        data={"titulo": "Oferta Invalida", "precio": 1000.0, "ubicacion": "Manizales", 
