@@ -4,7 +4,22 @@ import { RatingStars } from './RatingStars';
 import api from '../services/api';
 
 interface OfferCardProps {
-  offer: { id: number; autor_id?: number; titulo: string; descripcion: string; ubicacion: string; precio: number; imagen?: string; foto?: string; autor_username?: string; autor?: string; calificacion: number; total_calificaciones: number; es_propia?: boolean; onDelete?: (id: number) => void };
+  offer: {
+    id: number;
+    autor_id?: number;
+    titulo: string;
+    descripcion: string;
+    ubicacion: string;
+    precio: number;
+    imagen?: string;
+    foto?: string;
+    autor_username?: string;
+    autor?: string;
+    calificacion: number;
+    total_calificaciones: number;
+    es_propia?: boolean;
+    onDelete?: (id: number) => void;
+  };
 }
 
 export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
@@ -12,6 +27,7 @@ export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
   const [total, setTotal] = useState(offer.total_calificaciones || 0);
   const [imgError, setImgError] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   const autorNombre = offer.autor_username || offer.autor || 'Anónimo';
   const autorId = offer.autor_id;
@@ -46,10 +62,10 @@ export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
       {showConfirm && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div style={{ background: '#fff', padding: '1.5rem', borderRadius: '12px', maxWidth: '400px' }}>
-            <p>¿Seguro que quieres eliminar esta oferta? Esta acción no se puede deshacer</p>
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-              <button onClick={() => setShowConfirm(false)}>Cancelar</button>
-              <button onClick={handleDelete} style={{ color: 'red' }}>Eliminar</button>
+            <p style={{ fontFamily: 'var(--font-family)', color: 'var(--text-color)' }}>¿Seguro que quieres eliminar esta oferta? Esta acción no se puede deshacer</p>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', justifyContent: 'flex-end' }}>
+              <button onClick={() => setShowConfirm(false)} className="btn-secondary-outline">Cancelar</button>
+              <button onClick={handleDelete} style={{ color: '#dc3545', border: '1px solid #dc3545', background: 'transparent', borderRadius: '20px', padding: '0.4rem 1rem', cursor: 'pointer', fontFamily: 'var(--font-family)', fontWeight: 600 }}>Eliminar</button>
             </div>
           </div>
         </div>
@@ -74,9 +90,35 @@ export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
           </div>
         </div>
         {isOwnOffer && (
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button onClick={() => navigate(`/ofertas/${offer.id}/editar`)} style={{ border: '1px solid var(--primary-blue)', color: 'var(--primary-blue)', background: 'transparent', borderRadius: '4px', padding: '0.2rem 0.5rem', cursor: 'pointer' }}>Editar</button>
-            <button onClick={() => setShowConfirm(true)} style={{ border: 'none', color: 'red', background: 'transparent', cursor: 'pointer' }}>Eliminar</button>
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-label="Opciones de oferta"
+              style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.2rem', padding: '0.2rem 0.5rem', color: 'var(--text-muted, #6c757d)' }}
+            >
+              •••
+            </button>
+            {menuOpen && (
+              <div
+                style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: '100%',
+                  backgroundColor: 'var(--card-bg, #ffffff)',
+                  border: '1px solid var(--border-color, #e0e0e0)',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  zIndex: 10,
+                  minWidth: '130px',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
+              >
+                <button onClick={() => { setMenuOpen(false); navigate(`/ofertas/${offer.id}/editar`); }} style={{ background: 'none', border: 'none', padding: '0.6rem 1rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'var(--font-family)', color: 'var(--text-color, #333333)' }}>Editar</button>
+                <button onClick={() => { setMenuOpen(false); setShowConfirm(true); }} style={{ background: 'none', border: 'none', padding: '0.6rem 1rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'var(--font-family)', color: '#dc3545', fontWeight: 500 }}>Eliminar</button>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -23,9 +23,12 @@ describe('OfferCard Component - Autor vs Otro Usuario e Imagen', () => {
         total_calificaciones: 5,
         autor_username: 'cazador'
     };
-    it('muestra Editar y Eliminar si el usuario autenticado es el autor', () => {
+    it('muestra Editar y Eliminar al abrir el menú si el usuario autenticado es el autor', () => {
         localStorage.setItem('user', JSON.stringify({ id: 10, username: 'cazador' }));
         render(_jsx(MemoryRouter, { children: _jsx(OfferCard, { offer: mockOffer }) }));
+        const menuBtn = screen.getByRole('button', { name: /opciones/i });
+        expect(menuBtn).toBeInTheDocument();
+        fireEvent.click(menuBtn);
         expect(screen.getByText('Editar')).toBeInTheDocument();
         expect(screen.getByText('Eliminar')).toBeInTheDocument();
     });
@@ -33,9 +36,11 @@ describe('OfferCard Component - Autor vs Otro Usuario e Imagen', () => {
         localStorage.setItem('user', JSON.stringify({ id: 10, username: 'cazador' }));
         api.delete.mockResolvedValueOnce({});
         render(_jsx(MemoryRouter, { children: _jsx(OfferCard, { offer: mockOffer }) }));
+        fireEvent.click(screen.getByRole('button', { name: /opciones/i }));
         fireEvent.click(screen.getByText('Eliminar'));
         expect(screen.getByText(/¿Seguro que quieres eliminar/i)).toBeInTheDocument();
-        fireEvent.click(screen.getByText('Eliminar'));
-        await waitFor(() => expect(api.delete).toHaveBeenCalled());
+        const confirmBtn = screen.getAllByText('Eliminar').find(el => el.tagName === 'BUTTON');
+        fireEvent.click(confirmBtn);
+        await waitFor(() => expect(api.delete).toHaveBeenCalledWith('/ofertas/1'));
     });
 });
