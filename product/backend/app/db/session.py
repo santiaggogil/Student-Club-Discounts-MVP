@@ -10,18 +10,23 @@ Base = declarative_base()
 
 def run_migrations():
     inspector = inspect(engine)
-    if "users" in inspector.get_table_names():
-        columns = [c["name"] for c in inspector.get_columns("users")]
-        with engine.connect() as conn:
-            if "nombre" not in columns:
-                conn.execute(text("ALTER TABLE users ADD COLUMN nombre VARCHAR"))
-            if "foto_perfil" not in columns:
-                conn.execute(text("ALTER TABLE users ADD COLUMN foto_perfil VARCHAR"))
-            if "biografia" not in columns:
-                conn.execute(text("ALTER TABLE users ADD COLUMN biografia VARCHAR"))
-            if "seguidores_privados" not in columns:
-                conn.execute(text("ALTER TABLE users ADD COLUMN seguidores_privados BOOLEAN DEFAULT 0 NOT NULL"))
-            conn.commit()
+    tables = inspector.get_table_names()
+    with engine.connect() as conn:
+        if "users" in tables:
+            columns = [c["name"] for c in inspector.get_columns("users")]
+            if "telegram_chat_id" not in columns:
+                conn.execute(text("ALTER TABLE users ADD COLUMN telegram_chat_id INTEGER"))
+            if "telegram_usuario" not in columns:
+                conn.execute(text("ALTER TABLE users ADD COLUMN telegram_usuario VARCHAR"))
+            if "codigo_vinculacion" not in columns:
+                conn.execute(text("ALTER TABLE users ADD COLUMN codigo_vinculacion VARCHAR"))
+            if "vinculado_en" not in columns:
+                conn.execute(text("ALTER TABLE users ADD COLUMN vinculado_en DATETIME"))
+        
+        if "telegram_config" not in tables:
+            conn.execute(text("CREATE TABLE telegram_config (id INTEGER PRIMARY KEY, offset INTEGER DEFAULT 0)"))
+        
+        conn.commit()
 
 def get_db():
     db = SessionLocal()
