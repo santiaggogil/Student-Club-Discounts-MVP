@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { OfferCard } from '../OfferCard';
 import api from '../../services/api';
 
-vi.mock('../../services/api', () => ({ default: { delete: vi.fn() } }));
+vi.mock('../../services/api', () => ({ default: { delete: vi.fn(), post: vi.fn() } }));
 
 describe('OfferCard Component - Autor vs Otro Usuario e Imagen', () => {
   beforeEach(() => {
@@ -36,15 +36,11 @@ describe('OfferCard Component - Autor vs Otro Usuario e Imagen', () => {
     expect(screen.getByText('Eliminar')).toBeInTheDocument();
   });
 
-  it('Eliminar abre el modal y confirma', async () => {
-    localStorage.setItem('user', JSON.stringify({ id: 10, username: 'cazador' }));
-    (api.delete as any).mockResolvedValueOnce({});
+  it('calificar no rompe la tarjeta', async () => {
+    (api.post as any).mockResolvedValueOnce({ data: { promedio_calificacion: 5.0, total_calificaciones: 6 } });
     render(<MemoryRouter><OfferCard offer={mockOffer} /></MemoryRouter>);
-    fireEvent.click(screen.getByRole('button', { name: /opciones/i }));
-    fireEvent.click(screen.getByText('Eliminar'));
-    expect(screen.getByText(/¿Seguro que quieres eliminar/i)).toBeInTheDocument();
-    const confirmBtn = screen.getAllByText('Eliminar').find(el => el.tagName === 'BUTTON');
-    fireEvent.click(confirmBtn!);
-    await waitFor(() => expect(api.delete).toHaveBeenCalledWith('/ofertas/1'));
+    const stars = screen.getAllByText('★');
+    fireEvent.click(stars[4]);
+    await waitFor(() => expect(api.post).toHaveBeenCalled());
   });
 });

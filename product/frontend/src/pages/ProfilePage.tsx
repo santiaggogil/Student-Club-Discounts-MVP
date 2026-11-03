@@ -17,8 +17,6 @@ export const ProfilePage: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
   const isPublic = !!id;
-  const [isAuthenticated] = useState<boolean>(!!localStorage.getItem('token'));
-  const [myId, setMyId] = useState<number | null>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -38,13 +36,6 @@ export const ProfilePage: React.FC = () => {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('token');
-      if (token && !myId) {
-        try {
-          const me = await api.get('/usuarios/me');
-          setMyId(me.data.id);
-        } catch (e) {}
-      }
       const endpoint = isPublic ? `/usuarios/${id}` : '/usuarios/me';
       const res = await api.get(endpoint);
       setProfile(res.data);
@@ -65,6 +56,22 @@ export const ProfilePage: React.FC = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const data = new FormData();
+      data.append('nombre', formData.nombre);
+      data.append('biografia', formData.biografia);
+      data.append('seguidores_privados', String(formData.seguidores_privados));
+      if (formData.foto) data.append('foto', formData.foto);
+      await api.put('/usuarios/me', data);
+      setShowEditModal(false);
+      fetchProfile();
+    } catch (err: any) {
+      setErrors({ general: 'Error al guardar perfil' });
     }
   };
 
@@ -102,6 +109,27 @@ export const ProfilePage: React.FC = () => {
         </div>
       </div>
 
+      {showEditModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }} onClick={() => setShowEditModal(false)}>
+          <div style={{ background: '#fff', padding: '2rem', borderRadius: '12px', width: '90%', maxWidth: '400px' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+              <h3>Editar Mi Perfil</h3>
+              <button onClick={() => setShowEditModal(false)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '1.2rem' }}>×</button>
+            </div>
+            <form onSubmit={handleSaveProfile}>
+              <FormInput label="Nombre" value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} />
+              <FormInput label="Biografía" value={formData.biografia} onChange={e => setFormData({...formData, biografia: e.target.value})} />
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                <input type="checkbox" checked={formData.seguidores_privados} onChange={e => setFormData({...formData, seguidores_privados: e.target.checked})} />
+                Seguidores privados
+              </label>
+              <input type="file" onChange={e => setFormData({...formData, foto: e.target.files?.[0] || null})} />
+              <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '1rem' }}>Guardar</button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {modalType && <FollowModal userId={profile.id} type={modalType} onClose={() => setModalType(null)} />}
 
       <div style={{ marginTop: '2rem' }}>
@@ -111,7 +139,7 @@ export const ProfilePage: React.FC = () => {
         ) : (
           <div style={{ display: 'flex', overflowX: 'auto', gap: '1rem', paddingBottom: '1rem', scrollBehavior: 'smooth' }}>
             {ofertas.map((offer: any) => (
-              <div key={offer.id} style={{ minWidth: '280px' }}><OfferCard offer={{ ...offer, autor_username: profile.username }} /></div>
+              <div key={offer.id} style={{ minWidth: '280px' }}><OfferCard offer={{ ...offer, autor_username: profile.username, autor_foto: profile.foto_perfil }} /></div>
             ))}
           </div>
         )}

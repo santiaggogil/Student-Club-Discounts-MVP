@@ -14,6 +14,7 @@ interface OfferCardProps {
     imagen?: string;
     foto?: string;
     autor_username?: string;
+    autor_foto?: string;
     autor?: string;
     calificacion: number;
     promedio_calificacion?: number;
@@ -89,8 +90,12 @@ export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
       )}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.85rem' }}>
-            {autorNombre.charAt(0).toUpperCase()}
+          <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.85rem', overflow: 'hidden' }}>
+            {offer.autor_foto ? (
+              <img src={offer.autor_foto} alt={autorNombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              autorNombre.charAt(0).toUpperCase()
+            )}
           </div>
           <div>
             <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-color)' }}>{offer.titulo}</span>
