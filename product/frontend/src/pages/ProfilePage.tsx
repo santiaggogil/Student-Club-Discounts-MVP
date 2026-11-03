@@ -5,6 +5,7 @@ import api from '../services/api';
 import { OfferCard } from '../components/OfferCard';
 import { FormInput } from '../components/FormInput';
 import { LoadingState, ErrorState, EmptyState } from '../components/StatusStates';
+import { FollowModal } from '../components/FollowModal';
 
 const profileUpdateSchema = z.object({
   nombre: z.string().max(100, 'Máximo 100 caracteres').optional(),
@@ -18,13 +19,13 @@ export const ProfilePage: React.FC = () => {
   const isPublic = !!id;
   const [isAuthenticated] = useState<boolean>(!!localStorage.getItem('token'));
   const [myId, setMyId] = useState<number | null>(null);
-
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [isFollowing, setIsFollowing] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
+  const [modalType, setModalType] = useState<'seguidores' | 'seguidos' | null>(null);
 
   const [formData, setFormData] = useState({
     nombre: '',
@@ -160,8 +161,8 @@ export const ProfilePage: React.FC = () => {
             {profile.biografia || 'Sin biografía'}
           </p>
           <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.9rem', fontWeight: 600, alignItems: 'center' }}>
-            <span>Seguidores: {followersCount}</span>
-            <span>Seguidos: {profile.seguidos_count ?? profile.seguidos?.length ?? 0}</span>
+            <span style={{ cursor: 'pointer' }} onClick={() => setModalType('seguidores')}>Seguidores: {followersCount}</span>
+            <span style={{ cursor: 'pointer' }} onClick={() => setModalType('seguidos')}>Seguidos: {profile.seguidos_count ?? profile.seguidos?.length ?? 0}</span>
             {isPublic && isAuthenticated && myId && profile.id !== myId && (
               <button onClick={toggleFollow} className={isFollowing ? 'btn-secondary-outline' : 'btn-primary'} style={{ padding: '0.25rem 0.75rem', fontSize: '0.8rem' }}>
                 {isFollowing ? 'Dejar de seguir' : 'Seguir'}
@@ -170,6 +171,8 @@ export const ProfilePage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {modalType && <FollowModal userId={profile.id} type={modalType} onClose={() => setModalType(null)} />}
 
       {error && <div style={{ color: '#dc3545', background: '#f8d7da', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem' }} role="alert">{error}</div>}
       {successMsg && <div style={{ color: '#155724', background: '#d4edda', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem' }}>{successMsg}</div>}
