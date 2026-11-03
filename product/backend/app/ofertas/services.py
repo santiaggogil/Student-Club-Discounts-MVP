@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_, func
 from fastapi import UploadFile, HTTPException
 from app.ofertas.models import OfertaComunitaria, Calificacion
-from app.ofertas.schemas import OfertaResponse, OfertaCreate
+from app.ofertas.schemas import OfertaResponse, OfertaCreate, CalificacionResponse
 from app.ofertas.repository import OfertaRepository
 
 class OfertaService:
@@ -38,6 +38,7 @@ class OfertaService:
             imagen=oferta.imagen,
             autor_id=oferta.autor_id,
             autor_username=oferta.autor.username if oferta.autor else None,
+            autor_foto=oferta.autor.foto_perfil if oferta.autor else None,
             promedio_calificacion=promedio,
             total_calificaciones=len(calificaciones),
             mi_calificacion=mi_cal
@@ -51,12 +52,14 @@ class OfertaService:
         return OfertaService._formatear_oferta(db, o, user_id)
 
     @staticmethod
-    def calificar_oferta(db: Session, oferta_id: int, user_id: int, puntuacion: int) -> float:
+    def calificar_oferta(db: Session, oferta_id: int, user_id: int, puntuacion: int) -> CalificacionResponse:
         o = db.query(OfertaComunitaria).filter(OfertaComunitaria.id == oferta_id).first()
         if o and o.autor_id == user_id:
             raise HTTPException(status_code=400, detail="No puedes calificar tu propia oferta")
         OfertaRepository.guardar_calificacion(db, oferta_id, user_id, puntuacion)
-        return OfertaRepository.calcular_promedio(db, oferta_id)
+        calificaciones = db.query(Calificacion).filter(Calificacion.oferta_id == oferta_id).all()
+        promedio = sum(c.puntuacion for c in calificaciones) / len(calificaciones) if calificaciones else 0.0
+        return CalificacionResponse(promedio=promedio, promedio_calificacion=promedio, total_calificaciones=len(calificaciones), mi_calificacion=puntuacion)
 
     @staticmethod
     def publicar_oferta(db: Session, data: OfertaCreate, foto: UploadFile, autor_id: int):

@@ -30,9 +30,16 @@ class OfertaResponse(BaseModel):
     imagen: str | None
     autor_id: int
     autor_username: str | None = None
+    autor_foto: str | None = None
     promedio_calificacion: float = 0.0
     total_calificaciones: int = 0
     mi_calificacion: int | None = None
 
     class Config:
         from_attributes = True
+
+class CalificacionResponse(BaseModel):
+    promedio: float
+    promedio_calificacion: float
+    total_calificaciones: int
+    mi_calificacion: int

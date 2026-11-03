@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.services.auth import decode_token
-from app.ofertas.schemas import OfertaCreate, OfertaResponse
+from app.ofertas.schemas import OfertaCreate, OfertaResponse, CalificacionResponse
 from app.ofertas.services import OfertaService
 from app.social.models import User
 
@@ -48,7 +48,6 @@ def eliminar_oferta(oferta_id: int, db: Session = Depends(get_db), current_user:
 def listar_ofertas(db: Session = Depends(get_db), q: str | None = Query(None), page: int = Query(1, ge=1), size: int = Query(10, ge=1, le=100), orden: str = Query("relevancia"), user: User | None = Depends(get_current_user_optional)):
     return OfertaService.obtener_feed(db, page, size, orden, q, user.id if user else None)
 
-@router.post("/{oferta_id}/calificar")
+@router.post("/{oferta_id}/calificar", response_model=CalificacionResponse)
 def calificar_oferta(oferta_id: int, calif_in: CalificacionIn, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    promedio = OfertaService.calificar_oferta(db, oferta_id, current_user.id, calif_in.puntuacion)
-    return {"promedio": promedio}
+    return OfertaService.calificar_oferta(db, oferta_id, current_user.id, calif_in.puntuacion)
