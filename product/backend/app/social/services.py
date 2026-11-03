@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from fastapi import UploadFile, HTTPException
 from app.social.models import User, Seguimiento
 from app.ofertas.models import OfertaComunitaria
+from app.ofertas.services import OfertaService
 import uuid
 
 class SocialService:
@@ -28,7 +29,7 @@ class SocialService:
         target = db.query(User).filter(User.id == target_id).first()
         if not target:
             raise HTTPException(status_code=404, detail="Usuario no encontrado")
-        ofertas = db.query(OfertaComunitaria).filter(OfertaComunitaria.autor_id == target_id).all()
+        ofertas = db.query(OfertaComunitaria).filter(OfertaComunitaria.autor_id == target_id).order_by(OfertaComunitaria.id.desc()).all()
         seguidores_count = db.query(Seguimiento).filter(Seguimiento.seguido_id == target_id).count()
         seguidos_count = db.query(Seguimiento).filter(Seguimiento.seguidor_id == target_id).count() 
         lo_sigo = False
@@ -46,7 +47,7 @@ class SocialService:
             "seguidores_count": seguidores_count,
             "seguidos_count": seguidos_count,
             "lo_sigo": lo_sigo,
-            "ofertas_publicadas": [{"id": o.id, "titulo": o.titulo, "imagen": o.imagen, "precio": o.precio} for o in ofertas]
+            "ofertas_publicadas": [OfertaService._formatear_oferta(db, o, current_user.id if current_user else None).model_dump() for o in ofertas]
         }
 
     @staticmethod

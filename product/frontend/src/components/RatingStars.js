@@ -14,7 +14,7 @@ export const RatingStars = ({ ofertaId, initialRating, isOwner, onRate }) => {
             const response = await api.post(`/ofertas/${ofertaId}/calificar`, { puntuacion: val });
             setRating(val);
             if (response.data) {
-                onRate(response.data.promedio, response.data.total_calificaciones);
+                onRate(response.data.promedio_calificacion, response.data.total_calificaciones, val);
             }
         }
         catch (err) {
