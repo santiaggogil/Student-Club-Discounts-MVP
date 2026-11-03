@@ -16,7 +16,8 @@ export const ProfilePage: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
   const isPublic = !!id;
-  const isAuthenticated = !!localStorage.getItem('token');
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
+  const [myId, setMyId] = useState<number | null>(null);
 
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -38,6 +39,10 @@ export const ProfilePage: React.FC = () => {
     setLoading(true);
     setError('');
     try {
+      if (isAuthenticated && !myId) {
+        const me = await api.get('/usuarios/me');
+        setMyId(me.data.id);
+      }
       const endpoint = isPublic ? `/usuarios/${id}` : '/usuarios/me';
       const res = await api.get(endpoint);
       setProfile(res.data);
@@ -154,7 +159,7 @@ export const ProfilePage: React.FC = () => {
           <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.9rem', fontWeight: 600, alignItems: 'center' }}>
             <span>Seguidores: {followersCount}</span>
             <span>Seguidos: {profile.seguidos_count ?? profile.seguidos?.length ?? 0}</span>
-            {isPublic && isAuthenticated && profile.id !== parseInt(id || '0') && (
+            {isPublic && isAuthenticated && myId && profile.id !== myId && (
               <button onClick={toggleFollow} className={isFollowing ? 'btn-secondary-outline' : 'btn-primary'} style={{ padding: '0.25rem 0.75rem', fontSize: '0.8rem' }}>
                 {isFollowing ? 'Dejar de seguir' : 'Seguir'}
               </button>
