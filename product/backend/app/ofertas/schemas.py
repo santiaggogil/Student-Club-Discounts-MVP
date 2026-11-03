@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from datetime import datetime, timezone
 
 class OfertaCreate(BaseModel):
@@ -16,8 +16,11 @@ class OfertaCreate(BaseModel):
             s = v.strip()
             if s.endswith('Z'):
                 s = s[:-1] + '+00:00'
-            dt = datetime.fromisoformat(s)
-            return dt.astimezone(timezone.utc) if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+            try:
+                dt = datetime.fromisoformat(s)
+                return dt.astimezone(timezone.utc) if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+            except ValueError:
+                raise ValueError("Formato de fecha inválido")
         raise ValueError("Formato de fecha inválido")
 
 class OfertaResponse(BaseModel):
@@ -35,8 +38,7 @@ class OfertaResponse(BaseModel):
     total_calificaciones: int = 0
     mi_calificacion: int | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class CalificacionResponse(BaseModel):
     promedio: float

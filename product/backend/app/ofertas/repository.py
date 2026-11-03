@@ -49,7 +49,7 @@ class OfertaRepository:
         def clave_relevancia(o):
             prom = OfertaRepository.calcular_promedio(db, o.id)
             tot = len(o.calificaciones) if o.calificaciones else 0
-            return (prom, tot, o.id)
+            return (prom, tot)
 
         if orden == "recientes":
             ofertas.sort(key=lambda o: o.id, reverse=True)
