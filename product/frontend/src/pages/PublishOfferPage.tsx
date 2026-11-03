@@ -78,46 +78,28 @@ export const PublishOfferPage: React.FC = () => {
 
     setLoading(true);
 
-    if (isEditMode) {
-      const data = new FormData();
-      if (formData.titulo !== initialData?.titulo) data.append('titulo', formData.titulo);
-      if (formData.precio !== String(initialData?.precio)) data.append('precio', formData.precio);
-      if (formData.ubicacion !== initialData?.ubicacion) data.append('ubicacion', formData.ubicacion);
-      if (formData.vigencia && initialData?.vigencia && new Date(formData.vigencia).toISOString() !== new Date(initialData.vigencia).toISOString()) {
-        data.append('vigencia', new Date(formData.vigencia).toISOString());
-      } else if (formData.vigencia && !initialData?.vigencia) {
-        data.append('vigencia', new Date(formData.vigencia).toISOString());
-      }
-      if (formData.descripcion !== initialData?.descripcion) data.append('descripcion', formData.descripcion);
-      if (formData.foto) data.append('foto', formData.foto);
+    const data = new FormData();
+    data.append('titulo', formData.titulo);
+    data.append('precio', formData.precio);
+    data.append('ubicacion', formData.ubicacion);
+    data.append('vigencia', new Date(formData.vigencia).toISOString());
+    data.append('descripcion', formData.descripcion);
+    if (formData.foto) {
+      data.append('foto', formData.foto);
+    }
 
-      try {
+    try {
+      if (isEditMode) {
         await api.put(`/ofertas/${id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
-        navigate('/');
-      } catch (e: any) {
-        const detail = e.response?.data?.detail || e.response?.data?.message || 'Error al actualizar la oferta';
-        setServerError(typeof detail === 'string' ? detail : JSON.stringify(detail));
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      const data = new FormData();
-      data.append('titulo', formData.titulo);
-      data.append('precio', formData.precio);
-      data.append('ubicacion', formData.ubicacion);
-      data.append('vigencia', new Date(formData.vigencia).toISOString());
-      data.append('descripcion', formData.descripcion);
-      if (formData.foto) data.append('foto', formData.foto);
-
-      try {
+      } else {
         await api.post('/ofertas', data, { headers: { 'Content-Type': 'multipart/form-data' } });
-        navigate('/');
-      } catch (e: any) {
-        const detail = e.response?.data?.detail || e.response?.data?.message || 'Error al publicar la oferta';
-        setServerError(typeof detail === 'string' ? detail : JSON.stringify(detail));
-      } finally {
-        setLoading(false);
       }
+      navigate('/');
+    } catch (e: any) {
+      const detail = e.response?.data?.detail || e.response?.data?.message || 'Error al guardar la oferta';
+      setServerError(typeof detail === 'string' ? detail : JSON.stringify(detail));
+    } finally {
+      setLoading(false);
     }
   };
 
