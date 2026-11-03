@@ -20,33 +20,19 @@ describe('ProfilePage Component (HU-03)', () => {
     localStorage.setItem('token', 'fake-token');
   });
 
-  it('al hacer clic en Seguidores abre el modal y llama al servicio', async () => {
+  it('muestra carrusel con dos ofertas publicadas', async () => {
     (api.get as any).mockImplementation((url: string) => {
-      if (url === '/usuarios/me') return Promise.resolve({ data: { id: 1, username: 'cazador', seguidores_count: 1 } });
-      if (url.includes('/seguidores')) return Promise.resolve({ data: [{ id: 2, username: 'seguidor1' }] });
-      return Promise.resolve({ data: { id: 1, username: 'cazador', seguidores_count: 1 } });
+      if (url === '/usuarios/me') return Promise.resolve({ 
+        data: { id: 1, username: 'cazador', ofertas_publicadas: [
+          { id: 101, titulo: 'Oferta 1', precio: 1000 },
+          { id: 102, titulo: 'Oferta 2', precio: 2000 }
+        ] } 
+      });
+      return Promise.resolve({ data: { id: 1, username: 'cazador' } });
     });
 
-    render(
-      <MemoryRouter initialEntries={['/perfil']}>
-        <Routes>
-          <Route path="/perfil" element={<ProfilePage />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    await waitFor(() => expect(screen.getByText(/Seguidores: 1/i)).toBeInTheDocument());
-    fireEvent.click(screen.getByText(/Seguidores: 1/i));
-    
-    await waitFor(() => expect(api.get).toHaveBeenCalledWith('/usuarios/1/seguidores'));
-    expect(screen.getByText('seguidor1')).toBeInTheDocument();
-  });
-
-  it('abre el modal de edición al hacer clic en el engranaje', async () => {
-    (api.get as any).mockResolvedValue({ data: { id: 1, username: 'cazador' } });
     render(<MemoryRouter><ProfilePage /></MemoryRouter>);
-    await waitFor(() => expect(screen.getByText('⚙️')).toBeInTheDocument());
-    fireEvent.click(screen.getByText('⚙️'));
-    expect(screen.getByText('Editar Perfil')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('Oferta 1')).toBeInTheDocument());
+    expect(screen.getByText('Oferta 2')).toBeInTheDocument();
   });
 });

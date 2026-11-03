@@ -22,8 +22,6 @@ export const ProfilePage: React.FC = () => {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
-  const [isFollowing, setIsFollowing] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
   const [modalType, setModalType] = useState<'seguidores' | 'seguidos' | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -35,7 +33,6 @@ export const ProfilePage: React.FC = () => {
     foto: null as File | null,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [updating, setUpdating] = useState(false);
 
   const fetchProfile = async () => {
     setLoading(true);
@@ -51,7 +48,6 @@ export const ProfilePage: React.FC = () => {
       const endpoint = isPublic ? `/usuarios/${id}` : '/usuarios/me';
       const res = await api.get(endpoint);
       setProfile(res.data);
-      setIsFollowing(res.data.lo_sigo || false);
       setFollowersCount(res.data.seguidores_count ?? 0);
       if (!isPublic) {
         setFormData({
@@ -76,73 +72,11 @@ export const ProfilePage: React.FC = () => {
     fetchProfile();
   }, [id]);
 
-  const toggleFollow = async () => {
-    try {
-      if (isFollowing) {
-        await api.delete(`/usuarios/${id}/seguir`);
-        setIsFollowing(false);
-        setFollowersCount(prev => Math.max(0, prev - 1));
-      } else {
-        await api.post(`/usuarios/${id}/seguir`);
-        setIsFollowing(true);
-        setFollowersCount(prev => prev + 1);
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al actualizar seguimiento');
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      setFormData(prev => ({ ...prev, foto: e.target.files![0] }));
-    }
-  };
-
-  const handleUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setSuccessMsg('');
-
-    const result = profileUpdateSchema.safeParse({
-      nombre: formData.nombre,
-      biografia: formData.biografia,
-      seguidores_privados: formData.seguidores_privados,
-    });
-
-    if (!result.success) {
-      const newErrors: Record<string, string> = {};
-      result.error.errors.forEach(err => {
-        if (err.path[0]) newErrors[err.path[0] as string] = err.message;
-      });
-      setErrors(newErrors);
-      return;
-    }
-    setErrors({});
-    setUpdating(true);
-
-    const data = new FormData();
-    if (formData.nombre !== undefined) data.append('nombre', formData.nombre);
-    if (formData.biografia !== undefined) data.append('biografia', formData.biografia);
-    data.append('seguidores_privados', String(formData.seguidores_privados));
-    if (formData.foto) data.append('foto', formData.foto);
-
-    try {
-      const res = await api.put('/usuarios/me', data, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      setProfile(res.data);
-      setSuccessMsg('Perfil actualizado exitosamente');
-      setShowEditModal(false);
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Error al actualizar el perfil');
-    } finally {
-      setUpdating(false);
-    }
-  };
-
   if (loading) return <LoadingState message="Cargando perfil..." />;
   if (error && !profile) return <ErrorState title="Error" message={error} onRetry={fetchProfile} />;
   if (!profile) return <EmptyState title="Usuario no encontrado" message="El perfil solicitado no existe." />;
+
+  const ofertas = profile.ofertas_publicadas || profile.ofertas || [];
 
   return (
     <div className="profile-container" style={{ maxWidth: '800px', margin: '0 auto', paddingBottom: '3rem' }}>
@@ -164,36 +98,19 @@ export const ProfilePage: React.FC = () => {
           <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.9rem', fontWeight: 600, alignItems: 'center' }}>
             <span style={{ cursor: 'pointer' }} onClick={() => setModalType('seguidores')}>Seguidores: {followersCount}</span>
             <span style={{ cursor: 'pointer' }} onClick={() => setModalType('seguidos')}>Seguidos: {profile.seguidos_count ?? profile.seguidos?.length ?? 0}</span>
-            {isPublic && isAuthenticated && myId && profile.id !== myId && (
-              <button onClick={toggleFollow} className={isFollowing ? 'btn-secondary-outline' : 'btn-primary'} style={{ padding: '0.25rem 0.75rem', fontSize: '0.8rem' }}>{isFollowing ? 'Dejar de seguir' : 'Seguir'}</button>
-            )}
           </div>
         </div>
       </div>
-
-      {showEditModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000 }} onClick={() => setShowEditModal(false)}>
-          <div style={{ background: '#fff', padding: '2rem', borderRadius: '12px', width: '90%', maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}><h3>Editar Perfil</h3><button onClick={() => setShowEditModal(false)}>×</button></div>
-            <form onSubmit={handleUpdate}>
-              <FormInput label="Nombre" name="nombre" value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} />
-              <FormInput label="Biografía" name="biografia" value={formData.biografia} onChange={e => setFormData({...formData, biografia: e.target.value})} />
-              <FormInput label="Foto" name="foto" type="file" onChange={handleFileChange} />
-              <button type="submit" className="btn-primary">Guardar</button>
-            </form>
-          </div>
-        </div>
-      )}
 
       {modalType && <FollowModal userId={profile.id} type={modalType} onClose={() => setModalType(null)} />}
 
       <div style={{ marginTop: '2rem' }}>
         <h3 style={{ marginBottom: '1rem', fontSize: '1.2rem' }}>{isPublic ? `Ofertas publicadas por @${profile.username}` : 'Mis Ofertas Publicadas'}</h3>
-        {(!profile.ofertas || profile.ofertas.length === 0) ? (
+        {ofertas.length === 0 ? (
           <EmptyState title="Sin ofertas" message="Este usuario aún no ha publicado ofertas comunitarias." />
         ) : (
-          <div style={{ display: 'flex', overflowX: 'auto', gap: '1rem', paddingBottom: '1rem' }}>
-            {profile.ofertas.map((offer: any) => (
+          <div style={{ display: 'flex', overflowX: 'auto', gap: '1rem', paddingBottom: '1rem', scrollBehavior: 'smooth' }}>
+            {ofertas.map((offer: any) => (
               <div key={offer.id} style={{ minWidth: '280px' }}><OfferCard offer={{ ...offer, autor_username: profile.username }} /></div>
             ))}
           </div>
